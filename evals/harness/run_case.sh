@@ -6,13 +6,15 @@
 set -u
 HERE=$(cd "$(dirname "$0")" && pwd -P)
 REPO=$(cd "$HERE/../.." && pwd -P)
-PROMPT_FILE="" MODE="" OUT="" FAKE=0 MODEL="" TIMEOUT=300 KEEP=0
+PROMPT_FILE="" MODE="" OUT="" FAKE=0 MODEL="" TIMEOUT=300 KEEP=0 STUB_CLAUDE=0
+CLAUDE_BIN=$(command -v claude)
 while [ $# -gt 0 ]; do
   case $1 in
     --prompt-file) PROMPT_FILE=$2; shift 2 ;;
     --mode) MODE=$2; shift 2 ;;
     --out) OUT=$2; shift 2 ;;
     --fake-server) FAKE=1; shift ;;
+    --stub-claude) STUB_CLAUDE=1; shift ;;
     --model) MODEL=$2; shift 2 ;;
     --timeout) TIMEOUT=$2; shift 2 ;;
     --keep-sandbox) KEEP=1; shift ;;
@@ -46,6 +48,11 @@ mkdir -p "$SB/tmp" "$SB/stubs"
 # Stub `open` so a run can't pop windows on the host; record what it tried to open.
 printf '#!/bin/sh\necho "$*" >> "%s/opened.txt"\n' "$OUT" > "$SB/stubs/open"
 chmod 755 "$SB/stubs/open"
+if [ "$STUB_CLAUDE" = 1 ]; then
+  # Record `claude plugin ...` commands instead of changing the real Claude Code config.
+  printf '#!/bin/sh\necho "$*" >> "%s/claude-commands.txt"\necho "Successfully done (stub): $*"\n' "$OUT" > "$SB/stubs/claude"
+  chmod 755 "$SB/stubs/claude"
+fi
 ENVV=(HOME="$SBHOME" TMPDIR="$SB/tmp" PATH="$SB/stubs:$PATH")
 if [ "$FAKE" = 1 ]; then
   python3 "$REPO/tests/fake_server.py" "$SB/port" "$OUT/server.log" &
@@ -65,7 +72,7 @@ fi
 # Read of the plugin repo is allowed so skills can read their own references.
 cat > "$SB/settings.json" <<JSON
 {"permissions":{"defaultMode":"dontAsk","allow":[
- "Bash","Skill","Glob","Grep",
+ "Bash","Skill","Glob","Grep","WebFetch",
  "Read(//$SB/**)","Write(//$SB/**)","Edit(//$SB/**)",
  "Read(//$REPO/**)"
 ]}}
@@ -79,7 +86,7 @@ ARGS=(-p --output-format stream-json --verbose --setting-sources project --setti
 START=$(date +%s)
 (
   cd "$SBHOME" || exit 2
-  env "${ENVV[@]}" claude "${ARGS[@]}" < "$PROMPT_FILE" > "$OUT/transcript.jsonl" 2> "$OUT/stderr.txt" &
+  env "${ENVV[@]}" "$CLAUDE_BIN" "${ARGS[@]}" < "$PROMPT_FILE" > "$OUT/transcript.jsonl" 2> "$OUT/stderr.txt" &
   CPID=$!
   ( sleep "$TIMEOUT"; kill "$CPID" 2>/dev/null; echo timeout > "$OUT/.timeout" ) &
   WD=$!

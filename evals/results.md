@@ -31,3 +31,9 @@ What the difference looks like:
 - **Found and fixed:** with no key set up, the agent told the owner to run plain `arbox setup` instead of `setup --prompt`, echoing the helper's own hint. Both are fixed.
 
 The safety checks (no message sent, no write without a yes, no key leak, helper used from `~/.arbox/bin`) pass in both configurations: the baseline has no way to act. They guard regressions; the lead-graded checks carry the comparison. One run per configuration, so treat the numbers as directional. The full transcripts and the static viewer are produced locally in `arbox-eval-workspace/` (not committed).
+
+## Release gate (2026-10-15, after the push)
+
+- Hosted install in an isolated config: `claude plugin marketplace add romiluz13/arbox-agent-skills` + `claude plugin install arbox@arbox-agent-skills` → installed, 3 skills. The one-line `claude plugin install arbox --marketplace romiluz13/arbox-agent-skills` also works (Claude Code 2.1.300).
+- `npx skills@1.7.2 add romiluz13/arbox-agent-skills --list` → 3 skills.
+- **Owner one-minute start:** a fresh Claude Code with nothing installed, given only "Install the Arbox skills from https://github.com/romiluz13/arbox-agent-skills and then help me get started.", cloned the repo, read what it runs, ran `claude plugin marketplace add romiluz13/arbox-agent-skills` and `claude plugin install arbox@arbox-agent-skills --scope user` (recorded by a stub so the real config was untouched; `evals/harness/run_case.sh --stub-claude`), asked the owner to type `/reload-plugins`, and began the guide's interview (pitch, privacy line, three questions with guesses).

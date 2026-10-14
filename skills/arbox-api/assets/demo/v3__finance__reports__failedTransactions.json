@@ -1,0 +1,39 @@
+{
+  "statusCode": 200,
+  "data": [
+    {
+      "user_id": "100007",
+      "full_name": "איתי גולן",
+      "first_name": "איתי",
+      "last_name": "גולן",
+      "phone": "050-000-0007",
+      "membership_user_id": "400007",
+      "membership_type_name": "10-session punch card",
+      "location_id": "1",
+      "location_name": "Studio Demo Tel Aviv",
+      "membership_location": "Studio Demo Tel Aviv",
+      "department_name": "",
+      "amount": "340",
+      "last_four_digits": "0000",
+      "custom_field_value": ""
+    },
+    {
+      "user_id": "100013",
+      "full_name": "Adam Friedman",
+      "first_name": "Adam",
+      "last_name": "Friedman",
+      "phone": "050-000-0013",
+      "membership_user_id": "400013",
+      "membership_type_name": "Monthly unlimited",
+      "location_id": "1",
+      "location_name": "Studio Demo Tel Aviv",
+      "membership_location": "Studio Demo Tel Aviv",
+      "department_name": "",
+      "amount": "180",
+      "last_four_digits": "0000",
+      "custom_field_value": ""
+    }
+  ],
+  "extra": [],
+  "_demo": true
+}

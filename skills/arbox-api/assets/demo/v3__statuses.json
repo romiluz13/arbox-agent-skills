@@ -1,0 +1,23 @@
+{
+  "statusCode": 200,
+  "data": [
+    {
+      "status_id": "1",
+      "status_name": "New"
+    },
+    {
+      "status_id": "2",
+      "status_name": "Trial booked"
+    },
+    {
+      "status_id": "3",
+      "status_name": "Converted"
+    },
+    {
+      "status_id": "4",
+      "status_name": "Lost"
+    }
+  ],
+  "extra": [],
+  "_demo": true
+}

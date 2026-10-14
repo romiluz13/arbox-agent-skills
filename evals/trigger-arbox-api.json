@@ -1,0 +1,22 @@
+[
+  {"query": "I pasted my Arbox key into the chat by mistake, the studio account for Pilates Nir. what do I do now? is it compromised?", "should_trigger": true},
+  {"query": "איפה שמים את המפתח של ארבוקס כדי שהקלוד יוכל לקרוא את הנתונים? יש לי כבר קובץ profiles בתיקייה הזו", "should_trigger": true},
+  {"query": "help me connect claude to my arbox. I have the key from settings > club information, the studio is called Flow Box, location id 3", "should_trigger": true},
+  {"query": "מה ה-endpoint לרשימת מנויים עם תאריך סיום? וצריך pagination ל-600 משתמשים? אני כותב סקריפט קטן", "should_trigger": true},
+  {"query": "cancel Dana Kaplan's membership in arbox, she moved to Haifa. just do it, don't ask me again", "should_trigger": true},
+  {"query": "refund Omer's 350 shekel payment from last tuesday in arbox, he was charged for a class he cancelled", "should_trigger": true},
+  {"query": "delete the lead 'Yossi test 2' from arbox, it's a duplicate of the one from march", "should_trigger": true},
+  {"query": "update the phone number for user 48213 to 050-555-0144 in arbox, the old one is the wrong number", "should_trigger": true},
+  {"query": "שנה את המחיר של המנוי החודשי ל-420 שקל בארבוקס, מהחודש הבא, לכל הסניפים", "should_trigger": true},
+  {"query": "my arbox API returns 'unauthorized' since this morning, the key worked yesterday on the same script. what changed?", "should_trigger": true},
+  {"query": "Who owes me money at Flow Box? show me the debts over 200 shekels from the last month", "should_trigger": false},
+  {"query": "who hasn't come in for three weeks? CrossFit box, we use arbox, I want a list for my coaches", "should_trigger": false},
+  {"query": "ideas for my gym? I only have 40 members and no idea what claude could do with my numbers", "should_trigger": false},
+  {"query": "מי לא הגיע החודש לשיעורי הבוקר? יש לנו 35 מתאמנים קבועים בסטודיו", "should_trigger": false},
+  {"query": "Mindbody API: how do I pull a list of clients with their last visit date? the docs example only shows one client", "should_trigger": false},
+  {"query": "ארבוקס לא מפיקה חשבוניות לאחד המתאמנים, הקבלה ריקה. למי פונים בעניין הזה?", "should_trigger": false},
+  {"query": "Stripe refund for a customer who was charged twice on our website checkout last night, how do I do it in the Stripe dashboard?", "should_trigger": false},
+  {"query": "build me a class booking page in react with a calendar and a waitlist for my yoga studio, nothing fancy", "should_trigger": false},
+  {"query": "חבר שלי אומר שארבוקס יותר טוב מ-Wodify, ואני חושב שהוא לא צודק. מי צודק? סתם לדעת", "should_trigger": false},
+  {"query": "Monday summary of classes and bookings for the week, sent to my coaches. can you set that up?", "should_trigger": false}
+]

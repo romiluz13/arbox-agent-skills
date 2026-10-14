@@ -1,0 +1,12 @@
+{
+  "name": "arbox-agent-skills",
+  "owner": { "name": "Rom Iluz", "url": "https://github.com/romiluz13" },
+  "metadata": { "description": "Agent skills for Arbox business owners." },
+  "plugins": [
+    {
+      "name": "arbox",
+      "source": "./",
+      "description": "Discover, connect and build with your Arbox data in Claude Code."
+    }
+  ]
+}

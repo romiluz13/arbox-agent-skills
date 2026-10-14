@@ -2,3 +2,6 @@
 .env*
 .DS_Store
 node_modules/
+*-workspace/
+__pycache__/
+tests/.tmp/

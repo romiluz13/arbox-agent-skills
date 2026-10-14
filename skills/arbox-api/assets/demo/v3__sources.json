@@ -1,0 +1,27 @@
+{
+  "statusCode": 200,
+  "data": [
+    {
+      "source_id": "1",
+      "source_name": "Instagram"
+    },
+    {
+      "source_id": "2",
+      "source_name": "Facebook"
+    },
+    {
+      "source_id": "3",
+      "source_name": "Google"
+    },
+    {
+      "source_id": "4",
+      "source_name": "Walk-in"
+    },
+    {
+      "source_id": "5",
+      "source_name": "Referral"
+    }
+  ],
+  "extra": [],
+  "_demo": true
+}

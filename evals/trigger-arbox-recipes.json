@@ -1,0 +1,22 @@
+[
+  {"query": "who is about to expire? memberships or session packs ending in the next two weeks at Flow Box, I want to call them before they lapse", "should_trigger": true},
+  {"query": "מי לא הגיע החודש? יש לי סטודיו פילאטיס עם 120 מתאמנים ואני רוצה לדעת מי נעלם", "should_trigger": true},
+  {"query": "weekly monday summary of classes, bookings and new members for the three of us who run the studio, same format as last week please", "should_trigger": true},
+  {"query": "מי חייב לי כסף? כרטיסים שנכשלו וחובות פתוחים בארבוקס, בבקשה, מהחודש האחרון", "should_trigger": true},
+  {"query": "which leads from last month never got a follow-up? we use arbox leads and tasks, I think a few fell through the cracks", "should_trigger": true},
+  {"query": "show me no-shows and late cancels for my 1:1 physio clinic this month, I suspect Tuesday mornings are the problem", "should_trigger": true},
+  {"query": "מי עוד לא חתם על הצהרת הבריאות? השיעורים של הקיץ מתחילים בעוד שבועיים", "should_trigger": true},
+  {"query": "monthly sales vs last month, what did we take in on classes and packs at the Ramat Gan branch", "should_trigger": true},
+  {"query": "מתאמנים קבועים שהפסיקו לבוא בחודש האחרון, פלו בוקס, יש לנו 8 מאמנים. מי הם?", "should_trigger": true},
+  {"query": "which classes are always full with a waitlist and which are half empty this week? thinking about moving the 6am slot", "should_trigger": true},
+  {"query": "cancel Dana's membership, she moved to Haifa. do it in arbox", "should_trigger": false},
+  {"query": "I pasted my arbox key in the chat by accident, what do I do now", "should_trigger": false},
+  {"query": "תכתוב לי 12 כיתובים לאינסטגרם לסטודיו שלי לחודש הזה, יש לנו אתגר ריפורמר, בעברית", "should_trigger": false},
+  {"query": "ideas for my gym? what can claude actually do for a 40 member studio", "should_trigger": false},
+  {"query": "Mindbody vs Arbox for a small pilates studio, which has better reporting? I'm choosing between them next month", "should_trigger": false},
+  {"query": "export my wix members list (members_export_final(2).csv) to google sheets, emails are in column F", "should_trigger": false},
+  {"query": "Stripe refund for a customer who was charged twice on our website checkout, where do I click", "should_trigger": false},
+  {"query": "build a gym app with React, login, class booking and a member dashboard", "should_trigger": false},
+  {"query": "תכנית אימונים של 4 שבועות למתאמנת מתחילה בת 58 עם ברך פגועה, תכתוב לי", "should_trigger": false},
+  {"query": "arbox invoices aren't generating for one member since yesterday, receipts page is blank. who do I email?", "should_trigger": false}
+]

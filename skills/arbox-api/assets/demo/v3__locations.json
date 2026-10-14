@@ -1,0 +1,17 @@
+{
+  "statusCode": 200,
+  "data": [
+    {
+      "location_id": "1",
+      "location_name": "Studio Demo Tel Aviv",
+      "address": "Example Street 1, Tel Aviv (fictional)"
+    },
+    {
+      "location_id": "2",
+      "location_name": "Studio Demo Haifa",
+      "address": "Example Street 2, Haifa (fictional)"
+    }
+  ],
+  "extra": [],
+  "_demo": true
+}

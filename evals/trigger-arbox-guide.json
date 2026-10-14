@@ -1,0 +1,22 @@
+[
+  {"query": "hi! i run a small pilates studio in Ra'anana, about 90 members, we're on Arbox. my nephew says I can use Claude Code with it. I have zero idea what that means. what can I actually build?", "should_trigger": true},
+  {"query": "אני בעלת סטודיו פילאטיס בראשון לציון, יש לנו ארבוקס. מה אפשר לעשות עם קלוד קוד? אני לא טכנית בכלל", "should_trigger": true},
+  {"query": "what can claude do for my crossfit box? we use arbox, i'm not techy, just want ideas for the summer slump", "should_trigger": true},
+  {"query": "רעיונות לסטודיו שלי? יש לנו 3 סניפים בארבוקס ואני לא יודע מאיפה להתחיל בכלל", "should_trigger": true},
+  {"query": "how can AI help run my gym business honestly, i keep hearing about it and my ops are a mess, 2 coaches quit this year", "should_trigger": true},
+  {"query": "I'm new to claude code, installed the plugin yesterday. what should I try first for my dance school? we have 4 teachers and ~150 students on arbox", "should_trigger": true},
+  {"query": "בעל אקדמיה לקראטה, יש לנו ארבוקס בייסיק. תן לי שלושה דברים שאפשר להקל עליי, בלי טכני, בבקשה. אשתי מנהלת את החשבונות", "should_trigger": true},
+  {"query": "מנהלת חדר כושר קטן בחיפה, כ-60 מתאמנים. יש לי כמה שאלות על מה אפשר לעשות עם קלוד ועם ארבוקס", "should_trigger": true},
+  {"query": "my clinic runs on arbox (physio + massage, ~60 clients a month). what's possible with claude? i only want the easy stuff for now", "should_trigger": true},
+  {"query": "I want to rewrite my class descriptions for the reformer and mat classes, they sound boring. can claude help with that for my pilates studio?", "should_trigger": true},
+  {"query": "Who owes me money at Flow Box? show me the debts over 200 shekels from the last month", "should_trigger": false},
+  {"query": "how do I rotate my arbox api key, I think it leaked in a screenshot i posted in a facebook group", "should_trigger": false},
+  {"query": "our Mindbody API sync keeps timing out after 500 clients, any tips for paginating the client list?", "should_trigger": false},
+  {"query": "write me a 4-week beginner strength plan for a client who is 58, has a bad left knee and wants to get off the couch", "should_trigger": false},
+  {"query": "lol is arbox actually better than wodify? my coach says wodify has nicer charts but i think arbox is cheaper, who's right", "should_trigger": false},
+  {"query": "export my wix members list (members_export_final(2).csv) to google sheets, the emails are in column F and i need the names too", "should_trigger": false},
+  {"query": "build me a gym member app in react with login, a class booking screen and a push notification when the class is full", "should_trigger": false},
+  {"query": "ארבוקס לא מפיקה חשבוניות למתאמן אחד מאתמול, דף הקבלה ריק. למי אני פונה בעניין הזה?", "should_trigger": false},
+  {"query": "who hasn't come in for three weeks at my yoga studio? I want names for a call list before Friday", "should_trigger": false},
+  {"query": "צריך תבנית חשבונית בעברית לעבודה פרטית שלי כפיזיותרפיסטית, לא לקליניקה. אפשר בוורד?", "should_trigger": false}
+]

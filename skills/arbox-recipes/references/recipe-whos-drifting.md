@@ -16,14 +16,14 @@
    `~/.arbox/bin/arbox read /v3/reports/regularsReport --all --out ~/Arbox/work/whos-drifting/regulars.json`  (add `-p <profile>` for a branch, `--demo` for sample data)
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 2. Who has been absent:
-   `~/.arbox/bin/arbox read /v3/reports/absenceReport fromDate=<today-90d> toDate=<today> --all --out ~/Arbox/work/whos-drifting/absence.json`
+   `~/.arbox/bin/arbox read /v3/reports/absenceReport fromDate=<today-30d> toDate=<today> group_by=user --all --out ~/Arbox/work/whos-drifting/absence.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
-   Dates are `YYYY-MM-DD`. What the dates filter on is unconfirmed (LIVE CHECK), so the 90-day window is generous on purpose.
+   Dates are `YYYY-MM-DD`. Arbox requires `fromDate`, `toDate` and `group_by` here and refuses a range over 31 days (live-checked 2026-10-15). What the dates filter on is unconfirmed (LIVE CHECK).
 
 Fields used: regularsReport `user_id`, `full_name`, `phone`, `class_name`, `day_of_week`, `start_time`, `location_name`; absenceReport `phone`, `last_seen`, `future_registration`, `allow_sms`, `allow_email`. Ignored on purpose: `email`, `debt`, `memberships`, `membership_name`. Never shown: anything health related, `personal_id`, addresses.
 
 ## How to compute
-The absence report has no `user_id`, so people are joined by phone (digits only). Names are not unique, so never join by name.
+Join on `user_id` when the absence rows carry one; otherwise by phone (digits only). Names are not unique, so never join by name. If the join matches no regular at all (on one live account every absence row had an empty phone), stop: tell the owner the two reports can't be matched on their account, show the counts only, and don't guess.
 1. Keep one regular per person (`user_id`); keep their slots as "Reformer, Monday 18:00".
 2. Look the regular up in the absence report by phone. No match means they are not in the absence list: not drifting, do not guess.
 3. days quiet = today minus `last_seen`. Keep the person when days quiet is at least the threshold AND `future_registration` is empty (nothing booked ahead).
@@ -43,19 +43,20 @@ def esc: tostring | @html;
     | {user_id: .[0].user_id, name: .[0].full_name, phone: .[0].phone,
        slot: (map("\(.class_name), \(.day_of_week) \(.start_time)") | join("; "))} as $r
     | ($A[$r.phone | digits]) as $a
-    | select($a != null and $a.last_seen != null)
-    | select(((day($today) - day($a.last_seen)) / 86400) >= $n)
+    | select($a != null)
+    | (if $a.last_seen == null then null else ((day($today) - day($a.last_seen)) / 86400 | floor) end) as $d
+    | select($d == null or $d >= $n)
     | select(($a.future_registration // "") == "")
-    | $r + {last_seen: $a.last_seen[0:10], days: ((day($today) - day($a.last_seen)) / 86400 | floor),
+    | $r + {last_seen: ($a.last_seen // "never seen" | tostring | .[0:10]), days: $d,
             can_sms: ($a.allow_sms == "yes"), can_email: ($a.allow_email == "yes")}
-  ] | sort_by(-.days)'
+  ] | sort_by(-(.days // 100000))'
 ```
 To build table rows, pipe each object through the HTML-escape format: `.[] | @html "<tr><td>\(.name)</td><td>\(.slot)</td><td class=\"num\">\(.days)</td></tr>"`. The @html format escapes `& < > " '` in the interpolated values only.
 
 ## Owner-adjustable defaults
 - Quiet threshold: 21 days. Ask: "Is three weeks the right line for your studio, or would you call two weeks quiet?"
 - Regular means "appears in Arbox's regulars list". Ask if they want a different bar (for example only people with two or more weekly slots).
-- Window for the absence report: 90 days.
+- Window for the absence report: the last 30 days (Arbox allows at most 31).
 
 ## Output
 - HTML: fill [../assets/report.html](../assets/report.html) (static; HTML-escape every value: & < > " '). Title "Who's drifting", date range, data time, the filter in words ("regulars not seen for 21+ days, nothing booked ahead"), the four cards, a table (name, usual class, last seen, days quiet, can be messaged), and an INCOMPLETE banner if any fetch warned. SAMPLE DATA banner when the data is demo. Save to `~/Arbox/reports/whos-drifting-YYYY-MM-DD.html`.

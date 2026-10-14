@@ -66,7 +66,7 @@ Demo expected result (today 2026-10-14): 1 to 14 October: 3 sales, 3380 paid, 18
 - LIVE CHECK: whether a row is a line item or a whole invoice, and how refunds look (`action`, `sub_action` are free text). That is why special rows are kept out of revenue.
 - LIVE CHECK: what `status` values mean (the sample says "active"); do not filter on it.
 - Busy months can pass 500 rows. `--all` pages until a short page; if the executor prints INCOMPLETE, show the banner and say totals are "at least".
-- `salesReport` has no documented 31-day cap (the finance sales endpoint does). If a long period returns suspiciously few rows, split it by month.
+- `salesReport` refuses a range over 31 days (live-checked 2026-10-15; the spec doesn't say so). For a longer period, fetch month by month and add the months up.
 - Sales dated in a month are not cash received that month: installments and later payments differ. Keep `transactionsReport` figures separate and label them "cash collected".
 - The report carries health and ID fields (`medical_cert`, `has_waiver`, `personal_id`). They must be dropped, not hidden in the page.
 

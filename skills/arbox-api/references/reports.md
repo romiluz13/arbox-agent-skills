@@ -62,10 +62,26 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 
 - Path `reportName` (required): one of the 47 names listed below.
 - Optional query: `fromDate`, `toDate` (camelCase; the spec gives no format, while other endpoints use `Y-m-d`, so confirm with one live call), `location_id`, `limit` (max 500), `page`, and the filters in *Shared facts*.
-- Example: `GET /v3/reports/absenceReport?fromDate=2026-09-14&toDate=2026-10-14&limit=500&page=1`
+- Example: `GET /v3/reports/absenceReport?fromDate=2026-09-14&toDate=2026-10-14&group_by=user&limit=500&page=1` (`absenceReport` requires `group_by`; the window is within the 31-day cap)
 - Response: envelope `{statusCode, data[], extra[]}`. The 200 schema is an untagged union with no discriminator, so the item shape comes from the name-to-schema mapping label in each entry, not from the response.
 - No total or next-page field. A short or empty page is the only end signal.
 - `reportName` is also repeated as an optional query parameter. Send it once, in the path.
+
+## Server also accepts (not in the spec's 47)
+
+Checked live on 2026-10-15 on a test gym. The server's own `reportName` list (from its 400 message) has 53 names: the spec's 47 plus these seven. Their parameters are not verified, so they are UNDOCUMENTED here and no entry is written for them:
+
+- `activeMembers`
+- `activePlanMembers`
+- `activeSessionMembers`
+- `externalMembershipsReport`
+- `getMissingMembers`
+- `shiftSummaryReport`
+- `workshopsBookingReport`
+
+What the server did with them: each name passes the name check. Without parameters, six return 400 asking for dates (`getMissingMembers` asks only for `fromDate`). With dates, five of them return HTTP 500 "An unexpected server error occurred." (`getMissingMembers` returned the same 500 with `fromDate` only). `workshopsBookingReport` returns that 500 with no parameters. Treat these seven as unavailable until a later check gets a 200.
+
+`revenueAnalysisReport` is in the spec's 47, but the server refuses it (400 "reportName must be one of ..."). Do not use it.
 
 ## Shared facts
 
@@ -74,22 +90,22 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 | Param | Type | Notes |
 |---|---|---|
 | `reportName` | path, required, enum of 47 | Also repeated as an optional query param (duplicate name, see Quirks) |
-| `fromDate`, `toDate` | string, camelCase, no `format` | Date filter. Description says only "FromDate"/"ToDate". No cap documented on this endpoint |
+| `fromDate`, `toDate` | string, camelCase, no `format` | Date filter. Description says only "FromDate"/"ToDate". A 31-day cap is observed on several reports (see *Date-range caps*) |
 | `location_id` | integer | Location filter |
 | `user_id` | integer | Member filter |
 | `membership_type_id` | integer | Membership type filter |
 | `status`, `status_id` | string / integer | Status filters. Values not documented |
 | `source_id`, `lost_reason_id`, `sale_person_id`, `assignee_id`, `coach_id`, `box_category_id`, `space_id` | integer | Entity filters |
-| `type` | string, free | Not documented |
+| `type` | string | Not documented in the spec. Observed on `bookingStatisticsReport` only, which accepts two values (see its entry) |
 | `sessions_left` | integer | Filter by remaining sessions |
 | `group_by` | string enum: `membership_user`, `membership_user_fk`, `user`, `user_fk` | Grouping. Which reports honor it: UNKNOWN |
 | `hideFutureCancel`, `hideHold` | string enum `"0"` / `"1"` | Example `"1"` |
 | `success` | string enum `"0"` / `"1"` | Not described. Probably irrelevant to reports (it appears to be a shared parameter) |
 | `page`, `limit`, `sort` | integer, integer (max 500), `asc`/`desc` | Pagination. Response has no total or next-page field |
 
-**Required parameters:** none beyond the path `reportName`. Every filter is optional.
+**Required parameters:** the path `reportName`, plus whatever the entry's Params line says. Several reports need dates (observed 2026-10-15: `absenceReport`, `bookingsReport`, `bookingStatisticsReport`, `expiringMembershipsReport`, `expiringSessionsReport`, `hugimRevenueReport`, `hugimRevenueByReceiptReport`, `inactiveMembersReport`, `convertedLeadReport`, `salesReport`, `trialClassesReport`). `signedFormsReport` needs `toDate`. The spec does not say which reports need what.
 
-**Date-range caps:** none documented on this endpoint. The 31-day cap in the spec applies only to four finance GETs (invoices, receipts, cashFlow, sales; see `finance.md`). It does not apply to `salesReport` here. Whether any report enforces a cap is UNKNOWN (live check L7).
+**Date-range caps:** the spec states the 31-day cap on four finance GETs only (invoices, receipts, cashFlow, sales; see `finance.md`). On 2026-10-15 the reports also refused windows over 31 days, with the same message ("The date range should not exceed 31 days."): `birthdayReport` (a full year), `salesReport` (60 days), `lateCancellationReport` (60 days), `trialClassesReport` (44 days), `absenceReport` (90 days). Keep every report window at 31 days or less. Reports not listed here were not tested beyond 31 days. Live results: `docs/plan/live-check-results.md`.
 
 **Responses:** 200, 404, 422. No error schema. `data` is always an array, even for single-object cases.
 
@@ -115,7 +131,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## inactiveMembersReport
 
 - **Schema:** `InactiveMembersReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
 - **Key fields** (15 of 30): `full_name`, `user_type`, `email`, `phone`, `inactive_from`, `active_memberships_count`, `future_memberships_count`, `active_charges`, `created_at`, `age`, `gender`, `lead_owner`, `location_name`, `allow_sms`, `allow_email`.
 - **Flags:** P, F (`active_charges`).
 - **Owner question:** "Which members no longer have an active membership, and since when?"
@@ -125,7 +141,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## expiringMembershipsReport
 
 - **Schema:** `ExpiringMembershipsReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
 - **Key fields** (15 of 24): `full_name`, `phone`, `email`, `membership_type_name`, `membership_user_id`, `start_date`, `end_date`, `price`, `cancelled`, `cancel_reason`, `has_another_session`, `has_another_plan`, `group_leader`, `location_name`, `lead_owner`.
 - **Flags:** P, F.
 - **Owner question:** "Whose time-based membership ends soon, and has it already been cancelled?"
@@ -235,7 +251,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## birthdayReport
 
 - **Schema:** `BirthdayReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required parameters: not tested without dates. Date cap: 31 days (observed 2026-10-15: a full-year window returned 400).
 - **Key fields** (15 of 16): `user_id`, `full_name`, `first_name`, `last_name`, `birthday`, `age`, `status`, `user_role`, `phone`, `email`, `allow_sms`, `allow_email`, `location_name`, `lead_owner`, `lead_owner_id`. Exclude `personal_id`.
 - **Flags:** P (`birthday`, `age`).
 - **Owner question:** "Whose birthday is coming up so I can send a wish?"
@@ -275,7 +291,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## convertedLeadReport
 
 - **Schema:** `ConvertedLeadsReportResource`. INFERRED (**fuzzy**: plural `Leads` in schema, singular in report name).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
 - **Key fields** (15 of 22): `lead_id`, `full_name`, `email`, `phone`, `created_at`, `converted_at`, `converted_by`, `lead_source`, `campaign`, `membership_type_name`, `active`, `lead_owner`, `location_name`, `allow_sms`, `allow_email`.
 - **Flags:** P.
 - **Owner question:** "Which leads became paying clients, how long did it take, and from which source?"
@@ -290,17 +306,17 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 - **Flags:** P, F.
 - **Owner question:** "How many sessions has each member used from their pack, and how many are left?"
 - **Business types:** fitness (class packs), clinic (session packs), education (course passes), beauty (treatment packs).
-- **Quirks:** uses `name`, not `full_name`. `sessions_left` is `string|null`.
+- **Quirks:** uses `name`, not `full_name`. `sessions_left` was an integer on all 7 rows seen on 2026-10-15; the earlier `string|null` note is not seen on this account.
 
 ## expiringSessionsReport
 
 - **Schema:** `ExpiringSessionsReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
 - **Key fields** (15 of 29): `user_id`, `full_name`, `email`, `phone`, `group_leader`, `membership_type_name`, `start_date`, `end_date`, `sessions_left`, `future_schedules`, `count_session`, `price`, `cancelled`, `cancel_reason`, `has_another_session`.
 - **Flags:** P, F.
 - **Owner question:** "Which session packs are about to run out, and how many sessions are left?"
 - **Business types:** fitness, Pilates, yoga, clinic, beauty (packs), education (course passes).
-- **Quirks:** `sessions_left` is `string|null`. Filter by numeric value after casting.
+- **Quirks:** `sessions_left` was an integer on the 1 row seen on 2026-10-15; no null seen yet. Filter by numeric value after casting.
 
 ## expiredSessionsReport
 
@@ -365,7 +381,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## signedFormsReport
 
 - **Schema:** `SignedFormsReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `toDate` (without it, 400 "'to date' is required", observed 2026-10-15). `fromDate` is optional. Observed 2026-10-15: `toDate` alone returned 200 with 6 rows; `fromDate` 2026-09-15 with `toDate` 2026-10-15 returned 200 with 0 rows, so `fromDate` narrows the result. Date cap: not tested beyond 31 days.
 - **Key fields** (15 of 18): `user_id`, `form_id`, `full_name`, `phone`, `email`, `status`, `type`, `sign_date`, `exp_date`, `sent_by`, `user_role`, `allow_email`, `allow_sms`, `lead_owner`, `lead_owner_id`. Exclude `personal_id`.
 - **Flags:** P. **Possibly H** if `type` is a health declaration. Form content is not in this report.
 - **Owner question:** "Who signed which form (waiver or health declaration), and when does it expire?"
@@ -394,7 +410,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## salesReport
 
 - **Schema:** `SalesReportResource` (the one in the report union, **not** `App.Http.Resources.PublicApiV3.Invoice.SalesReportResource`). INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31 days (observed 2026-10-15: a 60-day window returned 400).
 - **Key fields** (15 of 39): `date`, `full_name`, `item_name`, `item_type`, `price`, `discount`, `paid`, `debt`, `status`, `action`, `sub_action`, `sale_person_name`, `lead_source`, `campaign_name`, `promo_code`. Also present: `medical_cert`, `has_waiver`, `has_image`, `personal_id`, `membership_type_internal_name`.
 - **Flags:** P, F, **H** (`medical_cert`, `has_waiver` present in the schema, not in the key list).
 - **Owner question:** "What did I sell this period, at what price, and how much was paid?"
@@ -404,7 +420,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## bookingStatisticsReport
 
 - **Schema:** UNTYPED. No schema in the union matches the name.
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`, `type`. `type` accepts `summary_attendance_by_customer` or `summary_attendance_by_membership` (other values return 400, observed 2026-10-15). Date cap: not tested beyond 31 days.
 - **Key fields:** none (no schema).
 - **Flags:** P, possibly none. UNKNOWN until confirmed.
 - **Business types:** fitness, Pilates, yoga, CrossFit, education. INFERRED.
@@ -443,7 +459,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## lateCancellationReport
 
 - **Schema:** `LateCancellationReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). None required. Date cap: 31 days (observed 2026-10-15: a 60-day window returned 400).
 - **Key fields** (15 of 19): `booking_id`, `full_name`, `phone`, `email`, `session_name`, `membership_type_name`, `membership_user_id`, `staff_member`, `start_time`, `cancelled_time`, `hours_before`, `cancelled_by`, `entered_from_standby`, `location_name`, `allow_sms`.
 - **Flags:** P.
 - **Owner question:** "Who cancelled too late, and how late?"
@@ -453,7 +469,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## bookingsReport
 
 - **Schema:** UNTYPED. No schema matches. Closest by name: none. Not `BookingCancellationReportResource` (cancels, not bookings).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
 - **Key fields:** none.
 - **Flags:** P (expected).
 - **Owner question:** INFERRED: "All bookings in a period." Confirm with a live call.
@@ -492,7 +508,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## trialClassesReport
 
 - **Schema:** `TrialClassesReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31 days (observed 2026-10-15: a 44-day window returned 400).
 - **Key fields** (15 of 33): `user_id`, `full_name`, `email`, `phone`, `date`, `start_time`, `class_name`, `status`, `days_passed`, `source_name`, `campaign`, `lead_owner`, `check_in`, `staff_member`, `lost_reason_name`.
 - **Flags:** P.
 - **Owner question:** "Who tried a class, and who joined afterwards?"
@@ -502,7 +518,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## absenceReport
 
 - **Schema:** `AbsenceReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`, `group_by` (one of `membership_user`, `membership_user_fk`, `user`, `user_fk`; `user` returned 200 on 2026-10-15). Date cap: 31 days (observed 2026-10-15: a 90-day window returned 400).
 - **Key fields** (all 15): `full_name`, `first_name`, `last_name`, `phone`, `email`, `last_seen`, `future_registration`, `latest_registration`, `memberships`, `membership_name`, `debt`, `task_status`, `location_name`, `allow_sms`, `allow_email`.
 - **Flags:** P, F (`debt`).
 - **Owner question:** "Who hasn't come in for a while, and do they have a future booking?"
@@ -542,7 +558,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## hugimRevenueReport
 
 - **Schema:** UNTYPED. No schema matches.
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
 - **Key fields:** none.
 - **Flags:** F (expected).
 - **Owner question:** INFERRED: "How much revenue does each course bring in?" Confirm with a live call.
@@ -552,7 +568,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## hugimRevenueByReceiptReport
 
 - **Schema:** UNTYPED. The name suggests `ReceiptReportResource`, but that schema is the finance receipts endpoint's, untyped (`data: array<?>`), and is not in the report union. Not used as a mapping.
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
 - **Key fields:** none.
 - **Flags:** F (expected).
 - **Owner question:** INFERRED: "Course revenue, one row per receipt." Confirm with a live call.
@@ -562,7 +578,7 @@ Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 ## revenueAnalysisReport
 
 - **Schema:** UNTYPED. No schema matches.
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** not usable. The server refuses this name on 2026-10-15 (400 "reportName must be one of ..."), although it is in the spec's enum of 47.
 - **Key fields:** none.
 - **Flags:** F (expected).
 - **Owner question:** INFERRED: "Revenue broken down by something (product, membership type, period). Confirm the dimension with a live call."

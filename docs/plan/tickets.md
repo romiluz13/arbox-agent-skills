@@ -29,17 +29,17 @@ Tracker: this file (user decision: no GitHub issues). Status values: `todo` / `d
 | # | Ticket | Owner | Blocked by | Status |
 |---|---|---|---|---|
 | 01 | Scaffold: dirs, plugin.json, marketplace.json, LICENSE (MIT), .gitignore, `tools/validate.py`, CI workflow | sonnet | none | done |
-| 02 | Executor `skills/arbox-api/scripts/arbox` + `tests/` fake server + `tests/run.sh` | sonnet | 01 | todo |
-| 03 | `arbox-api` references: endpoints by tag, reports, quirks, doc-link index, openapi snapshot | haiku | 01 | todo |
-| 04 | `arbox-api` SKILL.md: setup flow, safety tiers, executor usage, Documentation | lead | 02, 03 | todo |
-| 05 | `arbox-guide`: SKILL.md, interview, ideas catalog, product knowledge, glossary (HE/EN), Documentation | sonnet | 03, T5 debate | review |
-| 06 | `arbox-recipes`: SKILL.md, the 6 debated recipes, HTML report template, routines, Documentation | sonnet | 04, T5 debate | todo |
-| 07 | Packaging check: `claude plugin validate`, `npx skills add . --list`, local plugin install smoke | haiku | 04-06 | todo |
-| 08 | Evals: skill-creator with/without runs for 3-4 flagship prompts, grading, viewer (static) | lead + subagents | 04-06 | todo |
-| 09 | Public docs: README (owner-first), CONTRIBUTING, CHANGELOG, docs/decisions.md | lead | 04-06 | todo |
-| 10 | Team review and vouch: each member reviews everything and signs `docs/plan/review.md`; fixes loop | all | 07-09 | todo |
-| 11 | Publish: commit, push, tag, GitHub release | lead | 10 | todo |
-| L  | Live checks L1-L10 on the test gym (read-only first) | haiku | key from user | blocked |
+| 02 | Executor `skills/arbox-api/scripts/arbox` + `tests/` fake server + `tests/run.sh` | sonnet | 01 | done (72 tests, sh + dash) |
+| 03 | `arbox-api` references: endpoints by tag, reports, quirks, doc-link index, openapi snapshot | haiku | 01 | done |
+| 04 | `arbox-api` SKILL.md: setup flow, safety tiers, executor usage, Documentation | lead | 02, 03 | done |
+| 05 | `arbox-guide`: SKILL.md, interview, ideas catalog, product knowledge, glossary (HE/EN), Documentation | sonnet | 03, T5 debate | done |
+| 06 | `arbox-recipes`: SKILL.md, the 6 debated recipes, HTML report template, routines, Documentation | sonnet + haiku | 04, T5 debate | done (10 recipes, routines, drafts) |
+| 07 | Packaging check: `claude plugin validate`, `npx skills add . --list`, local plugin install smoke | lead | 04-06 | done (`validate --strict`, `npx skills --list`) |
+| 08 | Evals: skill-creator with/without runs for 3-4 flagship prompts, grading, viewer (static) | lead + subagents | 04-06 | done (evals/results.md) |
+| 09 | Public docs: README (owner-first), CONTRIBUTING, CHANGELOG, docs/decisions.md | lead | 04-06 | done |
+| 10 | Team review and vouch: each member reviews everything and signs `docs/plan/review.md`; fixes loop | all | 07-09 | done (docs/plan/review.md, all three signed) |
+| 11 | Publish: commit, push, tag, GitHub release | lead | 10 | doing |
+| L  | Live checks L1-L10 on the test gym (read-only first) | haiku | key from user | done for reads on a test gym (docs/plan/live-check-results.md); writes (G10) not run |
 
 ## Ticket details
 

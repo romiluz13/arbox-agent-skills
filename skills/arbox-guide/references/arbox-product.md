@@ -50,13 +50,13 @@ The connection is the Arbox public API: about 65 operations, mostly reading. Ful
 
 **Claude can read:** schedule and capacity, waiting-list entries, members and their memberships, leads (statuses, sources, lost reasons, converted, lost), tasks, trial bookings, digital forms and waiver status, locations, message templates, finance reports (invoices, receipts, cash flow, sales, failed transactions), and 47 named reports (members, expiring, absence, debts, bookings, sales, leads, forms and more).
 
-**Claude can do only with the owner's yes (small, reversible):** create a task, add a note to a lead, change a lead status, create a lead, create a form link.
+**Claude can do only with the owner's yes (small and internal; notes and tasks stay once made):** create a task, add a note to a lead, change a lead status, create a lead, mark a lead lost, complete a task, add a note to a member. These seven are the only changes the helper allows.
 
 **Messages:** the API can send a push or WhatsApp message, but the guide treats all messages as drafts the owner sends. SMS and email sending through the API is not documented.
 
 **Stays in the Arbox app (Claude does not do it):** payments, refunds, membership price or status changes, cancelling or freezing memberships, merging or deleting members, standing-order changes, creating invoices, schedule changes.
 
-**App only, no API at all:** automations and auto actions, email and SMS campaigns, booking and renewal reminders, pipelines and funnels, lead capture forms, Stripe checkout and card storage, discounts, coupons and gift cards, member app and branding, check-in and entrance, the online booking link, accounting export, add-ons. Claude can only explain these and help write the content; the owner sets them up in Arbox.
+**App only, no API at all:** automations and auto actions, email and SMS campaigns, booking and renewal reminders, pipelines and funnels, lead capture forms, Stripe checkout and card storage, discounts, coupons and gift cards, member app and branding, check-in and entrance, the online booking link, accounting export, add-ons. Form links too: the API has an operation for them, but the helper doesn't allow it in v1. Claude can only explain these and help write the content; the owner sets them up in Arbox.
 
 ## Native features worth using first
 
@@ -80,7 +80,7 @@ The connection is the Arbox public API: about 65 operations, mostly reading. Ful
 
 Menu labels come from the Academy and may differ slightly by version.
 
-- API key / Zapier key: Settings > Club Information (an older label is Business Information). `arbox-api` handles the key; the guide never asks for it.
+- API key (Zapier key): Settings > Club Information, per Arbox's Zapier guide; not confirmed on a live account. `arbox-api` handles the key; the guide never asks for it.
 - Membership plans: Settings > Membership types > Add New Membership Plan.
 - Session punch cards: Settings > Session Punch Cards > Add New Session Punch Card.
 - Penalties: Settings > Business Settings > Penalties.

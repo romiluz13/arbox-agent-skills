@@ -10,8 +10,8 @@ Read this first. Three things in the current build differ from the plan, so the 
 
 | Gate | Current state | What the runbook does |
 |---|---|---|
-| Write allowlist (B02.2 item 8) | Not built. `skills/arbox-api/scripts/arbox` has an R3 **denylist** (`r3_refused`, lines 178-198). Any path not on the denylist is allowed past the gate with `--yes-i-confirmed`. | No write check (G10) runs until the allowlist is in and `tests/run.sh` proves PATCH /v3/users, PATCH /v3/users/injury, PATCH /v3/schedule, the bookings and /v3/message are refused. Reads (G1-G9) can run now. |
-| `arbox setup --prompt` | Does not exist. Setup takes `[name] [--open]` and creates a placeholder line. `--open` opens the keys file in TextEdit on a Mac. | Use `arbox setup testgym --open`. The owner pastes the key in the file, never in chat. A hidden-input prompt is the D6 change and is not built; L6 decides whether `!` can carry it. |
+| Write allowlist (B02.2 item 8) | Built: `write_allowed` in `skills/arbox-api/scripts/arbox` allows only the 7 R1 writes; `tests/run.sh` proves the rest are refused. | G10 may run after reads G1-G9 pass. |
+| `arbox setup --prompt` | Built. `arbox setup [name] --prompt` reads the key with hidden input and exits 2 when there is no real terminal. `arbox setup [name] [--open]` still creates the keys file with a placeholder and opens it in TextEdit on a Mac. | Use `arbox setup testgym --prompt` in a new Terminal tab; the key is typed hidden, never in chat. `--open` is the fallback. L6 decides whether `!` can carry hidden input. |
 | `read --pages N` | Does not exist. `read` takes `--out FILE` and `--all` (pages by itself, and `page=` or `limit=` cannot be set with it). | Use `--all`. Page counts come from the row count in the output. |
 
 If a gate fails, the affected check is recorded as **blocked**, not skipped silently.
@@ -24,16 +24,16 @@ If a gate fails, the affected check is recorded as **blocked**, not skipped sile
 4. **Set up the profile.**
    ```
    ~/.arbox/bin/arbox doctor                 # offline: curl, python3 (not used if a stub), jq, node, keys file mode
-   ~/.arbox/bin/arbox setup testgym --open   # creates the keys file with a placeholder and opens it in TextEdit
+   ~/.arbox/bin/arbox setup testgym --prompt # run in a NEW Terminal tab; asks for the key with hidden input
    ```
-   In TextEdit: replace the placeholder after `testgym=` with the key, save as plain text. The key is never typed in the terminal.
+   The key is typed hidden at the prompt in that new Terminal tab. It is never pasted into chat and never shown on screen. `--open` (keys file in TextEdit) is the fallback if `--prompt` is unavailable.
 5. **Check the profile without printing the key.**
    ```
    ~/.arbox/bin/arbox profiles               # names and states only
    ~/.arbox/bin/arbox doctor --online        # a live call; reports the connection state
    ```
 6. **Record the test gym's plan tier and location count** in the results file before anything else. Several recipes depend on Standard+ screens (section 5).
-7. **Logs.** Every `read` and `write` is logged to `~/Arbox/logs/actions.log` (HTTP status only). Keep it with the results.
+7. **Logs.** Every `read` and `write` is logged to `~/Arbox/logs/activity.log` (one line per call, never the key). Keep it with the results.
 
 ## 2. Rules while running
 

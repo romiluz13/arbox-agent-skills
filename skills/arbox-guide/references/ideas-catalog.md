@@ -15,7 +15,7 @@ Pick three per owner (see SKILL.md). Each entry: the owner pitch in plain words,
 
 - **Fits**: G = group classes and memberships (Pilates, yoga, CrossFit, gym, martial arts, dance), 1 = one-on-one appointments (PT, clinic, beauty, tutor), C = courses and workshops (kids, education, activities), S = spaces and venues (bookable rooms, courts, activities), M = several locations.
 - **Plan gate**: what the owner's Arbox plan must include. Leads, tasks, auto actions, email and smart insights need Standard or higher; advanced reports need Standard or higher (basic reports on Free and Basic). Whether API access itself depends on plan is not confirmed; `arbox-api` finds out at connect time. "Any" = no plan limit known.
-- **Risk**: R0 read only. R1 small reversible update in Arbox (a task, a note, a lead status), only after the owner says yes. R2 member-facing message: always a draft the owner sends. R3 money, deletes, merges, membership changes: never done by the agent, stays in the Arbox app.
+- **Risk**: R0 read only. R1 small internal update in Arbox (a task, a note, a lead status), only after the owner says yes. R2 member-facing message: always a draft the owner sends. R3 money, deletes, merges, membership changes: never done by the agent, stays in the Arbox app.
 - **Effort**: Chat (answer in the conversation), Report (one page or file, minutes), Routine (rerun with one sentence), Loop (needs the owner's approval each run).
 - **Recipe**: the `arbox-recipes` skill builds it by that name. Operations are cited as `METHOD /path` with a link to the Arbox API docs. Reports are values of `reportName` for the Get Reports operation.
 - Report field shapes come from the spec for 40 of 47 reports, matched by name (INFERRED). Seven have no schema (UNTYPED), so their fields are unknown until the recipe probes them live. The recipe confirms fields against live data and shows the owner a spot check.
@@ -33,19 +33,19 @@ Native check: Arbox Academy "Reports" lesson, Retention group (clients at risk),
 "Who is about to run out of sessions or expire, plus who has unused credits, with a friendly renewal message drafted for me."
 Fits G 1 C. Plan: UNKNOWN for the Retention reports; auto-action reminders are Standard+. Confirm on connect. Risk R0, drafts R2. Effort Routine (weekly), Loop for messages.
 Operations: [`GET /v3/reports/{reportName}`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports) with `expiringSessionsReport`, `expiringMembershipsReport`, `expiredMembershipsReport`, `renewalsReport`; [`GET /v3/messageTemplates`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Message%20Templates) to match their tone.
-Native check: Reports > Retention (expiring without renewal) and Auto actions (Standard+) can send renewal reminders. Offer to set those up first if the owner wants zero effort; Claude adds the weekly list and Hebrew/English drafts.
+Native check: Reports > Retention (expiring without renewal) and auto actions (Standard+) send reminders and follow-ups; a renewal trigger isn't confirmed on Arbox's page, so check in the app. Offer to set those up first if the owner wants zero effort; Claude adds the weekly list and Hebrew/English drafts.
 
 ### 3. Payments to chase (recipe `payments-to-chase`)
 "Who owes me, or whose card failed."
 Fits all. Plan: UNKNOWN (failed-payment recovery is unconfirmed per tier). Risk R0; optional R1 task per person; drafts R2. Effort Report. Card digits are never printed.
-Operations: [`GET /v3/reports/{reportName}`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports) with `debtReport`; [`GET /v3/finance/reports/failedTransactions`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Failed%20Transactions); optional [`POST /v3/tasks`](https://arboxserver.arboxapp.com/docs/api#/operations/Create%20New%20Task) (R1; look up task types first with [`GET /v3/tasks/types`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Task%20Types)).
-Native check: Arbox has Failed Transactions with a built-in debt and card-update message to the member (Academy "Recurring Plan" lesson). Point there for the send; Claude builds the owner's chase list.
+Operations: [`GET /v3/reports/{reportName}`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports) with `debtReport`; [`GET /v3/finance/reports/failedTransactions`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Failed%20Transactions).
+Native check: Arbox has Failed Transactions with a built-in debt and card-update message to the member (Academy "Recurring Plan" lesson; plan not confirmed). Point there for the send; Claude builds the owner's chase list.
 
 ### 4. Leads and trials follow-up (recipe `leads-and-trials`)
 "Every new lead and trial gets looked at, so nobody falls through, and I see who actually joined."
 Fits G 1 C. Plan: Standard+ (lead and task management). Risk R0; optional R1 follow-up task or note per lead. Effort Report, then Loop.
 Operations: [`GET /v3/leads`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20All%20Leads), [`GET /v3/schedule/booking/trial`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Trial%20Class%20Bookings), [`GET /v3/leads/converted`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Converted%20Leads), [`GET /v3/leads/lost`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Lost%20Leads), [`GET /v3/sources`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Lead%20Sources); optional [`POST /v3/tasks`](https://arboxserver.arboxapp.com/docs/api#/operations/Create%20New%20Task), [`POST /v3/leads/createNote`](https://arboxserver.arboxapp.com/docs/api#/operations/Add%20Note%20to%20Lead), [`POST /v3/leads/updateStatus`](https://arboxserver.arboxapp.com/docs/api#/operations/Update%20Lead%20Status). Reports: `leadsInProcessReport`, `trialClassesReport`, `convertedLeadReport`, `allLeadsReport`.
-Native check: Zapier brings leads from Facebook, Instagram and Google ads into Arbox; the Growth reports show conversion. Claude adds follow-up prioritization.
+Native check: Arbox's Zapier integration lists Facebook, Instagram and Google Ads lead sources (plan not confirmed); the Growth reports show the share of leads converted. Claude adds follow-up prioritization.
 
 ### 5. Sales snapshot (recipe `sales-snapshot`)
 "What I earned this month versus last month, and what I sold."
@@ -72,13 +72,13 @@ Operations: [`GET /v3/reports/{reportName}`](https://arboxserver.arboxapp.com/do
 
 ### 9. Waivers and forms (recipe `waivers-and-forms`)
 "Who has not signed their waiver or health declaration."
-Fits all, esp. clinics and activities. Plan: any. Risk R0; optional R1 creating a form link (sends nothing by itself). Effort Report. Health values are never printed, only whether it is signed.
+Fits all, esp. clinics and activities. Plan: any. Risk R0. Form links are made in the Arbox app; the helper can't create them in v1. Effort Report. Health values are never printed, only whether it is signed.
 Operations: [`GET /v3/digitalForms`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Digital%20Forms); [`GET /v3/reports/{reportName}`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports) with `signedFormsReport`; [`GET /v3/users/waiver/{type}/{value}`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20users%20with%20waiver); optional [`POST /v3/digitalForms/createLink`](https://arboxserver.arboxapp.com/docs/api#/operations/Create%20Digital%20Form%20Link).
 
 ### 10. The Monday page (output of several recipes)
 "One page every Monday: how many came, who joined, who left, what I earned, who to call."
 Fits all. Plan: any, richer on Standard+. Risk R0. Effort Routine (rerun with one sentence, no automatic scheduling in v1).
-Composes renewal-watch, payments-to-chase, sales-snapshot, class-fill and whos-drifting into one HTML page. Offer it as the second or third idea once one recipe has worked. It also covers "local dashboard" and "daily front-desk briefing" requests.
+Composes renewal-watch, payments-to-chase, sales-snapshot, class-fill and no-shows into one HTML page. Offer it as the second or third idea once one recipe has worked. It also covers "local dashboard" and "daily front-desk briefing" requests.
 
 ## More Arbox ideas (no recipe yet)
 
@@ -115,7 +115,7 @@ Operations: [`GET /v3/locations`](https://arboxserver.arboxapp.com/docs/api#/ope
 ### 18. Birthdays and milestones
 Birthday wishes drafted for each member who allows messages. Fits G 1 C. R0, drafts R2. Loop.
 Operations: [`GET /v3/reports/{reportName}`](https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports) with `birthdayReport`.
-Native check: Arbox auto actions (Standard+) can already send birthday messages; check-in shows a birthday icon. Suggest the native route first.
+Native check: Arbox auto actions (Standard+) send reminders and follow-ups; a birthday trigger isn't confirmed on Arbox's page, so check in the app. Check-in shows a birthday icon. Suggest the native route first.
 
 ### 19. Daily front-desk briefing
 Today's classes, bookings, birthdays, expiring packs, open tasks. Fits G 1. R0. Routine (daily).

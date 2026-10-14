@@ -14,9 +14,9 @@
 ## Data to fetch
 All with `~/.arbox/bin/arbox read ... --all --out ~/Arbox/work/leads-and-trials/<name>.json` (add `-p <profile>` for a branch, `--demo` for sample data).
 1. Open leads: `/v3/reports/leadsInProcessReport` to `open.json`. Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
-2. Trial classes: `/v3/reports/trialClassesReport fromDate=<today-30d> toDate=<today+14d>` to `trials.json`. Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
+2. Trial classes: `/v3/reports/trialClassesReport fromDate=<today-16d> toDate=<today+14d>` (Arbox refuses ranges over 31 days) to `trials.json`. Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 3. Converted leads (time to join): `/v3/reports/convertedLeadReport fromDate=<today-30d> toDate=<today>` to `converted.json`. Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
-4. Open tasks, to avoid double follow-ups: `/v3/tasks from_date=<today-30d> to_date=<today+30d>` to `tasks.json`. Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20All%20Tasks
+4. Open tasks, to avoid double follow-ups: `/v3/tasks from_date=<today-3d> to_date=<today+3d>` to `tasks.json`. Arbox refuses a tasks range over 7 days (live-checked 2026-10-15), so this shows tasks due this week only; older open tasks don't appear. Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20All%20Tasks
 5. Wording of stages and sources (untyped, read one item to see its shape): `/v3/statuses` and `/v3/sources` to `statuses.json`, `sources.json`. Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Lead%20Statuses and https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Lead%20Sources
 6. Only for task creation: `/v3/leads` for each lead's `location_id` (https://arboxserver.arboxapp.com/docs/api#/operations/Get%20All%20Leads), `/v3/tasks/types` for `task_type_id` (https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Task%20Types), `/v3/users/allStaffMembers` for who to assign (https://arboxserver.arboxapp.com/docs/api#/operations/Get%20staff%20members).
 

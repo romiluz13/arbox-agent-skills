@@ -2,7 +2,7 @@
 
 Membership types and cancel or hold reasons, tasks, messages, digital forms, custom fields and locations.
 
-Tier key: **R0** read-only. **R1** reversible internal write (notes, tasks, lead status, create a lead). **R2** member-facing or hard to undo (messages, bookings, edits to a person). **R3** money, identity or delete: never agent-executed in v1.
+Tier key: **R0** read-only. **R1** small internal write, no undo through the API (notes, tasks, lead status, create a lead). **R2** member-facing or hard to undo (messages, bookings, edits to a person). **R3** money, identity or delete: never agent-executed in v1.
 
 Data key: **S0** studio configuration. **S1** personal contact data. **S2** health, national ID, salary, payment or finance data. S1 and S2 reads stay out of chat and go to files by default.
 
@@ -128,7 +128,7 @@ List follow-up tasks in a date range.
 
 **Response 200:** `TaskResource` envelope `{statusCode, data[], extra[]}`. Item fields: `task_id`, `user_id`, `email`, `gender`, `active`, `reminder_time`, `created_at`, `full_name`, `phone`, `additional_phone`, `location_name`, `task_type`, `description`, `staff_member`, `staff_member_phone`, `done`, `done_time`, `done_by`, `attribution`.
 
-**Preconditions and lookup:** `from_date` and `to_date` REQUIRED.
+**Preconditions and lookup:** `from_date` and `to_date` REQUIRED. The window is capped at 7 days: on 2026-10-15 a 31-day and a 60-day window both returned 400 "The date range should not exceed 7 days." Page through a longer period one week at a time.
 
 **Quirks:**
 

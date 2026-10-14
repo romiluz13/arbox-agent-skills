@@ -26,7 +26,7 @@ Let TODAY be the run date. Use TODAY and TODAY plus 30 days where a date is need
    Fields ignored: medical_cert, injury, has_insurance, restricted, personal_id, age, gender, address, city, country, zip_code, state, additional_phone, union_name, union_id, custom_field_value, lead_owner, lead_owner_id.
 
 2. Signed forms:
-   `~/.arbox/bin/arbox read /v3/reports/signedFormsReport --all --out ~/Arbox/work/waivers-and-forms/signedFormsReport.json`
+   `~/.arbox/bin/arbox read /v3/reports/signedFormsReport toDate=<today> --all --out ~/Arbox/work/waivers-and-forms/signedFormsReport.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
    Fields used: user_id, form_id, type, status, sign_date, exp_date.
    Fields ignored: full_name, phone, email, sent_by, lead_owner, lead_owner_id, user_role, allow_email, allow_sms.

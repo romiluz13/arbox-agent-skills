@@ -1,6 +1,6 @@
 # Safety: tiers, allowed writes, refusals
 
-Why so strict: the owner's Arbox holds live members, money and health data, and most owners can't easily undo a mistake. A wrong message reaches real people; a wrong charge is real money. v1 allows only small internal updates that a person can undo in a click.
+Why so strict: the owner's Arbox holds live members, money and health data, and most owners can't easily undo a mistake. A wrong message reaches real people; a wrong charge is real money. v1 allows only small internal updates. The helper can't undo them: a task can be marked done, and a note stays. Whether the Arbox screen can remove them is a LIVE CHECK, so never promise an undo.
 
 ## Contents
 - [The 7 allowed writes (R1)](#the-7-allowed-writes-r1)
@@ -29,7 +29,7 @@ Whether these trigger Arbox automations (for example an auto action on a status 
 ## The confirm protocol
 
 1. Prepare the exact change: the operation, every body field, the target people (names and count) and the branch (`-p` profile).
-2. Show it in plain words: "I'll create 4 follow-up tasks in Studio Tel Aviv, one per lead below, due tomorrow at 10:00, assigned to you. You can delete them in Arbox. Go ahead?"
+2. Show it in plain words: "I'll create 4 follow-up tasks in Studio Tel Aviv, one per lead below, due tomorrow at 10:00, assigned to you. You can mark them done in Arbox; I can't delete them. Go ahead?"
 3. Wait for an explicit yes to this change. "Sure", "yes", "go" count; silence, "maybe", or a yes to something else don't.
 4. Call once per record: `~/.arbox/bin/arbox write POST /v3/tasks --body-file ~/Arbox/work/task-1.json --yes-i-confirmed`. Write bodies to files under `~/Arbox/work/` first so they're easy to show and log.
 5. Report what happened per record. On any failure stop, show the error in plain words, and ask before trying anything else. Never retry automatically; a write may have succeeded even when the reply failed.

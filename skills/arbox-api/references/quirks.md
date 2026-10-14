@@ -59,7 +59,7 @@ Three encodings are used for the same idea:
 
 ## Dates and date ranges
 
-- **Date-range caps:** the spec says "The date range must not exceed 31 days" on four finance GETs only: `invoices`, `receipts`, `cashFlow`, `sales` (`to_date` parameter). Split longer periods into 31-day windows, month by month. No other date-range endpoint states a cap. Whether any undocumented cap exists elsewhere is LIVE CHECK.
+- **Date-range caps:** the spec says "The date range must not exceed 31 days" on four finance GETs only: `invoices`, `receipts`, `cashFlow`, `sales` (`to_date` parameter). Live on 2026-10-15 the same 400 message also came from report windows over 31 days (`birthdayReport`, `salesReport`, `lateCancellationReport`, `trialClassesReport`, `absenceReport`) and from `GET /v3/schedule` (42 days). `GET /v3/tasks` refuses windows over 7 days ("The date range should not exceed 7 days."). Split longer periods into windows of 31 days or less (7 for tasks). Other date-range endpoints were not tested beyond 31 days. Results: `docs/plan/live-check-results.md`.
 - **Reports** use `fromDate` and `toDate` in camelCase with no `format` stated. Schedule and most other operations use `from_date` and `to_date` in `Y-m-d` form. Use the spelling each operation declares.
 - Date fields in bodies are `string` with `format: date` (`YYYY-MM-DD`). Responses use `date-time`, and the timezone is not stated.
 - LIVE CHECK: whether `fromDate` and `toDate` on reports filter by the report row date or another date (for example, `birthdayReport` by birthday).

@@ -6,7 +6,9 @@
     {
       "name": "arbox",
       "source": "./",
-      "description": "Discover, connect and build with your Arbox data in Claude Code."
+      "description": "Discover, connect and build with your Arbox data in Claude Code.",
+      "category": "business",
+      "tags": ["arbox", "gym", "studio", "pilates", "yoga", "crossfit", "fitness", "reports", "hebrew"]
     }
   ]
 }

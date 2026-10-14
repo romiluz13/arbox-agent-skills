@@ -2,7 +2,7 @@
 
 Finance reports (date-range GETs) and the document-creation write.
 
-Tier key: **R0** read-only. **R1** reversible internal write (notes, tasks, lead status, create a lead). **R2** member-facing or hard to undo (messages, bookings, edits to a person). **R3** money, identity or delete: never agent-executed in v1.
+Tier key: **R0** read-only. **R1** small internal write, no undo through the API (notes, tasks, lead status, create a lead). **R2** member-facing or hard to undo (messages, bookings, edits to a person). **R3** money, identity or delete: never agent-executed in v1.
 
 Data key: **S0** studio configuration. **S1** personal contact data. **S2** health, national ID, salary, payment or finance data. S1 and S2 reads stay out of chat and go to files by default.
 
@@ -83,7 +83,7 @@ See money in and out for a period.
 
 **Response 200:** `CashFlowReportResource` envelope `{statusCode, data[], extra[]}`. **Untyped:** `data` is an array of unspecified items (field names unknown).
 
-**Preconditions and lookup:** None beyond the date range.
+**Preconditions and lookup:** None beyond the date range. On an account with no Arbox Invoice connection, the four finance reads returned 400 with `error.message` "This box is not connected to Arbox Invoice." (test gym, 2026-10-15). Check the connection before relying on these reads.
 
 **Quirks:**
 
@@ -94,7 +94,7 @@ See money in and out for a period.
 **LIVE CHECK:**
 
 - Row shape (fields) of the response.
-- Whether the 31-day cap is enforced and what the error looks like.
+- The 31-day cap is enforced (2026-10-15): a 46-day window returned 400 with `error.message` `{"to_date":["The date range should not exceed 31 days."]}`.
 - What `project_id` selects.
 - What 'cash flow' includes.
 
@@ -145,7 +145,7 @@ List invoices issued in a period.
 
 **Response 200:** `InvoiceReportResource` envelope `{statusCode, data[], extra[]}`. **Untyped:** `data` is an array of unspecified items (field names unknown).
 
-**Preconditions and lookup:** None beyond the date range.
+**Preconditions and lookup:** None beyond the date range. On an account with no Arbox Invoice connection, the four finance reads returned 400 with `error.message` "This box is not connected to Arbox Invoice." (test gym, 2026-10-15). Check the connection before relying on these reads.
 
 **Quirks:**
 
@@ -156,7 +156,7 @@ List invoices issued in a period.
 **LIVE CHECK:**
 
 - Row shape (fields) of the response.
-- Whether the 31-day cap is enforced and what the error looks like.
+- The 31-day cap is enforced (2026-10-15): a 46-day window returned 400 with `error.message` `{"to_date":["The date range should not exceed 31 days."]}`.
 - What `project_id` selects.
 
 Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Invoices%20Report
@@ -178,7 +178,7 @@ List receipts issued in a period.
 
 **Response 200:** `ReceiptReportResource` envelope `{statusCode, data[], extra[]}`. **Untyped:** `data` is an array of unspecified items (field names unknown).
 
-**Preconditions and lookup:** None beyond the date range.
+**Preconditions and lookup:** None beyond the date range. On an account with no Arbox Invoice connection, the four finance reads returned 400 with `error.message` "This box is not connected to Arbox Invoice." (test gym, 2026-10-15). Check the connection before relying on these reads.
 
 **Quirks:**
 
@@ -189,7 +189,7 @@ List receipts issued in a period.
 **LIVE CHECK:**
 
 - Row shape (fields) of the response.
-- Whether the 31-day cap is enforced and what the error looks like.
+- The 31-day cap is enforced (2026-10-15): a 46-day window returned 400 with `error.message` `{"to_date":["The date range should not exceed 31 days."]}`.
 - What `project_id` selects.
 
 Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Receipts%20Report
@@ -211,7 +211,7 @@ See sales grouped by invoice for a period.
 
 **Response 200:** `App.Http.Resources.PublicApiV3.Invoice.SalesReportResource` envelope `{statusCode, data[], extra[]}`. **Untyped:** `data` is an array of unspecified items (field names unknown).
 
-**Preconditions and lookup:** None beyond the date range.
+**Preconditions and lookup:** None beyond the date range. On an account with no Arbox Invoice connection, the four finance reads returned 400 with `error.message` "This box is not connected to Arbox Invoice." (test gym, 2026-10-15). Check the connection before relying on these reads.
 
 **Quirks:**
 
@@ -222,7 +222,7 @@ See sales grouped by invoice for a period.
 **LIVE CHECK:**
 
 - Row shape (fields) of the response.
-- Whether the 31-day cap is enforced and what the error looks like.
+- The 31-day cap is enforced (2026-10-15): a 46-day window returned 400 with `error.message` `{"to_date":["The date range should not exceed 31 days."]}`.
 - What `project_id` selects.
 - How it differs from the salesReport under GET /v3/reports/{reportName}.
 

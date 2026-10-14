@@ -10,7 +10,7 @@ Use the owner's own word back to them. The right column is what the word maps to
 | סניף / branch, location | One site of the business | `location_id`, Get All Locations |
 | מתאמן, מתאמנת, לקוח, לקוחה / member, client, trainee, student | A customer | user (`user_id`) |
 | מתעניין, ליד / lead, prospect | Someone interested, not yet a member | lead, `leads` operations |
-| מאמן, מדריך, מדריכה / coach, instructor, trainer | Staff who teach | staff member (schedule rows give `staff_member` as a name, not an id; `coach_id` is a query filter) |
+| מאמן, מדריך, מדריכה / coach, instructor, trainer | Staff who teach | staff member (schedule rows give `staff_member` as a name, not an id; `staff_id` is the schedule query filter) |
 | צוות / staff | Employees | staff members |
 
 ## Classes and schedule
@@ -70,7 +70,7 @@ Use the owner's own word back to them. The right column is what the word maps to
 | Do not say | Say instead |
 |---|---|
 | API, endpoint, JSON | "your Arbox information", "the connection" |
-| API key (before the connection step) | "a connection code from your Arbox settings" |
+| API key (before the connection step) | "the API key", named as Arbox shows it (see `arbox-api` setup.md) |
 | query, fetch, payload | "look up", "pull" |
 | repo, skill, plugin | "add-on", "helper" only if asked |
 | R0/R1/R2/R3 | "look only", "small update with your yes", "draft", "stays in the app" |

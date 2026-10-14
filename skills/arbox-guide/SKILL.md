@@ -1,6 +1,6 @@
 ---
 name: arbox-guide
-description: "Start here when an owner or manager of a business that runs on Arbox (gym, Pilates, yoga, CrossFit, dance or martial-arts studio, clinic, salon, tutor, activity venue) asks what they can do or build with Arbox and Claude Code, says they are new to Claude Code, wants ideas for their studio or gym, or asks how AI can help run the business. Explains what is possible in plain words, interviews the owner in short rounds, saves a business profile, proposes three tailored ideas (including ones that need no Arbox connection, like class descriptions, member messages, offers, a simple website) and points to native Arbox features when they already solve the need. Works in Hebrew too: מה אפשר לעשות עם ארבוקס וקלוד קוד, רעיונות לסטודיו, איך AI יכול לעזור לעסק. Not for connecting a key or raw API calls (arbox-api) or building a named report like renewals or no-shows (arbox-recipes)."
+description: "Start here when an owner or manager of a business that runs on Arbox (gym, Pilates, yoga, CrossFit, dance or martial-arts studio, clinic, salon, tutor, activity venue) asks what they can do or build with Arbox and Claude Code, says they are new to Claude Code, wants ideas for their studio or gym, or asks how AI can help run the business. Explains what is possible in plain words, interviews the owner in short rounds, saves a business profile, proposes three tailored ideas (including ones that need no Arbox connection, like class descriptions, member messages, offers, a simple website) and points to native Arbox features when they already solve the need. Works in Hebrew too: מה אפשר לעשות עם ארבוקס וקלוד קוד, רעיונות לסטודיו, איך AI יכול לעזור לעסק. Also when the owner just installed these skills, asks to get started, or asks to update the Arbox skills. Not for connecting a key or raw API calls (arbox-api) or building a named report like renewals or no-shows (arbox-recipes)."
 license: MIT
 metadata:
   project: arbox-agent-skills
@@ -104,7 +104,7 @@ Many of the best wins need no Arbox connection at all, which makes them the safe
 | "I'm new to Arbox, how do I set X?" | Walk them through the Arbox Academy lesson or help article, see below |
 | "Reviews / replies to Google" | Drafts of review replies |
 
-**Honesty builds trust: point to Arbox itself when it already solves the need.** Auto actions (Standard+) send automatic reminders and birthday messages; Penalties handle no-show fines; the Failed Transactions screen messages members about debts; Reports > Retention lets them message members who are expiring or drifting; Zapier brings in leads from Facebook and Google ads. Say it plainly: "Arbox already does this with auto actions on Standard+; here is where to set it up", and link the lesson from [references/arbox-product.md](references/arbox-product.md). Then offer what Claude adds on top (a weekly page that joins several reports, drafted wording, analysis).
+**Honesty builds trust: point to Arbox itself when it already solves the need.** Auto actions (Standard+) send reminders and follow-ups (birthday and renewal triggers aren't confirmed on Arbox's page, so check in the app); Penalties handle no-show fines; the Failed Transactions screen messages members about debts; Reports > Retention lets them message members who are expiring or drifting; Zapier brings in leads from Facebook and Google ads. Say it plainly: "Arbox already does this with auto actions on Standard+; here is where to set it up", and link the lesson from [references/arbox-product.md](references/arbox-product.md). Then offer what Claude adds on top (a weekly page that joins several reports, drafted wording, analysis).
 
 ## Hand-offs
 
@@ -114,7 +114,7 @@ Hand off by skill name, never by path.
 - **Building a named idea** that has a recipe (renewal-watch, payments-to-chase, leads-and-trials, whos-drifting, sales-snapshot, class-fill, no-shows, first-30-days, waivers-and-forms, or the Monday page): use the `arbox-recipes` skill.
 - After the build, come back: update the profile (Ideas built) and offer the next two ideas.
 
-If a sibling skill is not installed, tell the owner the one install line, then continue with the no-connection ideas meanwhile. In Claude Code: `/plugin install arbox --marketplace romiluz13/arbox-agent-skills`. Older Claude Code versions: `/plugin marketplace add romiluz13/arbox-agent-skills`, then `/plugin install arbox@arbox-agent-skills`. Other agents: `npx skills add romiluz13/arbox-agent-skills`.
+If a sibling skill is not installed, tell the owner the one install line, then continue with the no-connection ideas meanwhile. In Claude Code: `/plugin install arbox --marketplace romiluz13/arbox-agent-skills`. Older Claude Code versions: `/plugin marketplace add romiluz13/arbox-agent-skills`, then `/plugin install arbox@arbox-agent-skills`. Other agents: `npx skills@1.7.2 add romiluz13/arbox-agent-skills`.
 
 ## Safety, in owner words
 
@@ -137,6 +137,11 @@ If the owner says "just send it to everyone" or "cancel those memberships", decl
 - Owner words in Hebrew and English: [references/glossary.md](references/glossary.md)
 - Idea details, plan gates, risk, effort: [references/ideas-catalog.md](references/ideas-catalog.md)
 - Question bank: [references/interview.md](references/interview.md)
+
+## Just installed, or updating
+
+- **Right after install** (the owner says "help me get started", "I just installed it", or nothing yet): give the first-contact pitch and start the interview above. Don't talk about commands.
+- **"Update my Arbox skills"** (עדכנו את התוסף של ארבוקס): in Claude Code run `claude plugin update arbox@arbox-agent-skills`, then ask the owner to type `/reload-plugins`. Installed with `npx skills`: run `npx -y skills@1.7.2 update -g -y`. Then tell them what's new in one line if the update printed it.
 
 ## Documentation
 

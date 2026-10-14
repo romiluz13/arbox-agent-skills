@@ -6,7 +6,7 @@
 
 - EN: "new members", "first month", "bought last month and didn't come back", "intro offer buyers", "retention for new clients".
 - HE: "לקוחות חדשים", "מי הצטרף בחודש האחרון ולא חזר", "מי קנה הטבת היכרות ולא הגיע".
-- Fits: yoga and Pilates intro offers; CrossFit and gyms, where members often quit around month three (set the window to 60 days to see that); clinics and tutors, where the first visit is a consult; course starts.
+- Fits: yoga and Pilates intro offers; CrossFit and gyms, where members often quit around month three (look at two consecutive 30-day windows to see that); clinics and tutors, where the first visit is a consult; course starts.
 - Plan: UNKNOWN. If the key cannot read these reports, the executor says so.
 
 ## Before you start
@@ -26,7 +26,7 @@ Let TODAY be the run date and FROM be TODAY minus 30 days. Use them as `fromDate
    Fields ignored: personal_id, medical_cert, has_waiver, has_image, age, gender, email, discount, price, debt, lead_source, campaign_name, promo_code, sale_person_name.
 
 2. Quiet members:
-   `~/.arbox/bin/arbox read /v3/reports/absenceReport --all --out ~/Arbox/work/first-30-days/absenceReport.json`
+   `~/.arbox/bin/arbox read /v3/reports/absenceReport fromDate=YYYY-MM-DD toDate=YYYY-MM-DD group_by=user --all --out ~/Arbox/work/first-30-days/absenceReport.json` (FROM and TODAY; Arbox requires the dates and `group_by`, and refuses ranges over 31 days)
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
    Fields used: full_name, phone, last_seen, future_registration.
    Fields ignored: debt, memberships, membership_name, latest_registration, email. This report has no user_id; match on phone.
@@ -52,7 +52,7 @@ Plain rules first.
 
 ## Owner-adjustable defaults
 
-- **Window:** 30 days. Ask: "Joined in the last month, or the last two months?" For two months, set the window to 60 days.
+- **Window:** 30 days. Ask: "Joined in the last month, or the last two months?" For two months, run two 30-day windows (Arbox refuses a range over 31 days) and combine them.
 - **Intro offers:** the recipe shows item_name as the report gives it. It does not infer an intro offer from the name. Ask only if the owner wants a count of intro buyers: "What do you call your intro offer?" Then match that exact text.
 
 ## Output
@@ -89,7 +89,7 @@ Check the nine names in Arbox: the Clients list filtered to new members for the 
 - **Intro offers are not a field.** item_name is free text. The recipe never recognises an intro offer by guessing from the name.
 - **"No flag" is not "came back".** absenceReport lists quiet members under the report's own rule, which the spec does not state. LIVE CHECK: pick one new buyer and compare the report with that member's last visit in Arbox.
 - **Names are not unique.** Match on user_id where the report has one, and on phone for absenceReport. Two members sharing a phone show "not matched, check".
-- **Window limit.** salesReport has no documented date cap. The finance sales endpoint does have a 31-day cap, a different endpoint. LIVE CHECK L7: confirm that a 60-day window returns all rows. If the executor says INCOMPLETE, show the banner and do not present totals as final.
+- **Window limit.** Arbox refuses a salesReport or absenceReport range over 31 days (live-checked 2026-10-15), so keep FROM at most 30 days back. If the executor says INCOMPLETE, show the banner and do not present totals as final.
 - **Types.** paid and price are strings. user_id is a string in salesReport.
 
 ## Privacy

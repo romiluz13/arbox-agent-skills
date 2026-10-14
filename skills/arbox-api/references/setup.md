@@ -10,13 +10,13 @@ See SKILL.md section 1. Then run `~/.arbox/bin/arbox doctor`. It lists the tools
 
 Say something like:
 
-> In Arbox, go to **Settings → Club Information**. You'll see an "API Key". Copy it (it's a long string of letters and numbers). This is the same key Arbox uses for its Zapier connection. Don't paste it here in the chat; I'll show you a safer place in a moment.
+> In Arbox, go to **Settings → Club Information**. You'll see an "API Key". Copy it (it's a long string of letters and numbers). This is the same key Arbox uses for its Zapier connection. (That's the menu name in Arbox's Zapier guide, not yet confirmed on a live account; if you can't find it, look around Settings for "API key" or ask Arbox support.) Don't paste it here in the chat; I'll show you a safer place in a moment.
 
 Hebrew:
 
-> בארבוקס, היכנסו ל**הגדרות ← פרטי המועדון** (Club Information) והעתיקו את מפתח ה-API. זה אותו מפתח שמשמש לחיבור Zapier. אל תדביקו אותו כאן בצ'אט, תכף אראה לכם מקום בטוח יותר.
+> בארבוקס, היכנסו ל**הגדרות ← פרטי המועדון** (Club Information) והעתיקו את מפתח ה-API. זה אותו מפתח שמשמש לחיבור Zapier. (זה שם התפריט לפי המדריך של ארבוקס ל-Zapier, ועוד לא אומת בחשבון אמיתי; אם לא מוצאים, חפשו "API" בהגדרות או פנו לתמיכה של ארבוקס.) אל תדביקו אותו כאן בצ'אט, תכף אראה לכם מקום בטוח יותר.
 
-The exact Hebrew menu label isn't verified; if the owner can't find it, describe it in English and ask what they see.
+The English menu name comes from Arbox's Zapier guide and the Hebrew label is our translation; neither is confirmed on a live account. If the owner can't find it, describe it in English and ask what they see.
 
 **No key, or no API access?** Some plans or accounts may not show a key. Offer this email to Arbox support:
 
@@ -26,7 +26,7 @@ The exact Hebrew menu label isn't verified; if the owner can't find it, describe
 
 > נושא: הפעלת גישת API לחשבון ארבוקס שלי
 >
-> שלום, אני רוצה לחבר את חשבון הארבוקס שלי לעוזר בינה מלאכותית דרך ה-API הציבורי של ארבוקס. אפשר לוודא שגישת API פעילה לעסק שלי, ולהסביר איפה אני מוצא/ת את מפתח ה-API (הגדרות ← פרטי המועדון)? אם יש לעסק כמה סניפים, האם צריך מפתח נפרד לכל סניף? תודה!
+> שלום, אני רוצה לחבר את חשבון Arbox שלי לעוזר בינה מלאכותית דרך ה-API הציבורי של ארבוקס. אפשר לוודא שגישת API פעילה לעסק שלי, ולהסביר איפה אני מוצא/ת את מפתח ה-API (הגדרות ← פרטי המועדון)? אם יש לעסק כמה סניפים, האם צריך מפתח נפרד לכל סניף? תודה!
 
 Meanwhile, offer sample data (`--demo`) so they can see what reports look like.
 
@@ -42,7 +42,7 @@ For a second branch: `~/.arbox/bin/arbox setup haifa --prompt` (any short name: 
 
 Fallback, if Terminal feels too much:
 
-> I'll open a private file in TextEdit. Run: `~/.arbox/bin/arbox setup --open`. You'll see a line `default=PASTE-YOUR-KEY-HERE`. Replace the words after `=` with your key, with no spaces or quotes, save (⌘S), close it, and tell me "done".
+> I'll open a private file in TextEdit. Run: `~/.arbox/bin/arbox setup --open`. You'll see a line `default=PASTE_YOUR_ARBOX_KEY_HERE`. Replace the placeholder after `default=` with your key, save (⌘S), close it, and tell me "done". If the text looks formatted (fonts, bold), choose Format → Make Plain Text before saving.
 
 You can run the `--open` command for them (it creates the file and opens TextEdit); the owner does the pasting. Never read the file afterwards: `doctor` tells you whether it is filled in.
 
@@ -53,7 +53,8 @@ You can run the `--open` command for them (it creates the file and opens TextEdi
 - **OK for a profile:** "Connected to your Arbox. I can read your information now; nothing changes without your yes."
 - **Rejected (401 or 403):** the key was mistyped or isn't active. Repeat step 2 with `--prompt`. If it fails twice, send the support email.
 - **Network error:** check the internet connection; Arbox may be down. Try again in a minute.
-- **"keys with quotes or spaces are refused":** they pasted extra text. Repeat step 2.
+- **"contains unexpected characters (spaces or quotes?)"** or **"has spaces inside it":** extra text was pasted with the key. Repeat step 2 and paste only the key.
+- **"saved as a Rich Text file":** TextEdit saved it formatted. Open it, choose Format → Make Plain Text, save, then run `doctor --online` again.
 
 ## Step 4: permissions and privacy (once)
 

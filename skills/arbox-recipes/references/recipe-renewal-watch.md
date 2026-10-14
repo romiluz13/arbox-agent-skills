@@ -11,7 +11,7 @@
 
 ## Before you start
 
-- On the first live run, compare the number of people whose pack or membership ends in the next 14 days with Arbox's own lists (Reports > Retention, memberships expiring without renewal; and the Memberships list filtered to end dates). Check the same people and end dates before trusting the rest.
+- On the first live run, compare the number of people whose pack or membership ends in the next 14 days with Arbox's own lists (Arbox's Retention report, memberships expiring without renewal; the menu path may differ, LIVE CHECK; and the Memberships list filtered to end dates). Check the same people and end dates before trusting the rest.
 - Demo: works with `--demo` (sample data). Tell the owner the numbers are sample data, and keep the SAMPLE DATA banner on every page.
 
 ## Data to fetch
@@ -93,10 +93,10 @@ On `--demo`, run on 2026-10-14, the expected result is:
 - 7 need renewal. 6 can be messaged. The seventh, ג'ני לוי, has no channel allowed.
 - 2 renewal in place: דני אברהם (pack, has another plan) and Sean O'Brien (membership, has another plan).
 - 1 cancelled, check: איתי גולן (no draft).
-- 0 unbooked credits. Both members with sessions left either have a future booking (נועה כהן, Tamar Ben-David) or are cancelled (איתי גולן).
+- 0 unbooked credits. The three members with sessions left either have a future booking (נועה כהן, Tamar Ben-David) or are cancelled (איתי גולן).
 - Earliest end date: Adam Friedman, 2026-10-17. Maya Levi shows "sessions left: not reported".
 
-Check the 7 in Arbox: Reports > Retention (memberships expiring without renewal), and the Memberships list with end dates between today and today plus 14. Same people, same end dates, same count. That is the number the owner verifies.
+Check the 7 in Arbox: the Retention report (memberships expiring without renewal; the menu path may differ, LIVE CHECK), and the Memberships list with end dates between today and today plus 14. Same people, same end dates, same count. That is the number the owner verifies.
 
 ## Pitfalls and LIVE CHECKs
 

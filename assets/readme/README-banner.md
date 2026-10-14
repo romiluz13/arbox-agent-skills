@@ -1,0 +1,3 @@
+`banner.gif` / `banner.png` are drawn entirely in code by [anidoodle](https://github.com/alexgreensh/anidoodle) (Apache-2.0, by Alex Greenshpun) in its mid-century gouache style; `banner.ts` is the source.
+Regenerate: `git clone https://github.com/alexgreensh/anidoodle && node anidoodle/skills/anidoodle/engine/tools/scaffold.mjs art --film arboxBanner --size 1600x600 --duration 10 && cp assets/readme/banner.ts art/src/canvas-core/arboxBanner.ts && cd art && npm install && node tools/render.mjs arboxBanner --out out/banner.gif --gif-fps 15 && node tools/still.mjs arboxBanner --frame 299 --out out/banner.png`
+Not affiliated with Arbox or Anthropic; the spark is a generic doodle, not a logo.

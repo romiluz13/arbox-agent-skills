@@ -13,19 +13,19 @@
 
 ## Data to fetch
 1. The schedule with counts. The two flags are required, without them the counts are missing:
-   `~/.arbox/bin/arbox read /v3/schedule from_date=<today-28d> to_date=<today+14d> registration_count=1 waiting_list_count=1 --all --out ~/Arbox/work/class-fill/schedule.json`  (add `location_id=<id>` or `-p <profile>` for one branch, `--demo` for sample data)
+   `~/.arbox/bin/arbox read /v3/schedule from_date=<today-14d> to_date=<today+14d> registration_count=1 waiting_list_count=1 --all --out ~/Arbox/work/class-fill/schedule.json`  (add `location_id=<id>` or `-p <profile>` for one branch, `--demo` for sample data)
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Schedule
-   Default window: the 4 weeks just gone plus the 2 weeks ahead, so you can see both the habit and what is coming. For a quick look, use the next 14 days only.
+   Default window: the 2 weeks just gone plus the 2 weeks ahead, so you can see both the habit and what is coming. Arbox refuses a schedule range over 31 days (live-checked 2026-10-15); for a longer look, fetch consecutive windows of at most 31 days into separate files and combine their `data` arrays.
 2. Optional, only for "did they actually come": `classesSummaryReport` for the past dates (has check-in numbers).
-   `~/.arbox/bin/arbox read /v3/reports/classesSummaryReport fromDate=<today-28d> toDate=<today> --all --out ~/Arbox/work/class-fill/summary.json`
+   `~/.arbox/bin/arbox read /v3/reports/classesSummaryReport fromDate=<today-14d> toDate=<today> --all --out ~/Arbox/work/class-fill/summary.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
    It has one row per person per class, so it can be large; use only counts. Never request or show `salary`.
 
-Fields used: `schedule_id`, `date`, `start_time`, `session_name`, `location_name`, `staff_member` (a name), `max_participants`, `registration_count`, `waiting_list_count`, `cancelled_status`. Ignored: `cancelled_by_name`, `space_name`, `color`, custom fields. No member names are involved at all.
+Fields used: `schedule_id`, `date`, `start_time`, `session_name`, `location_name`, `staff_member` (a name), `max_participants`, `registration_count`, `waiting_list_count`, and `cancelled_status` when present (the spec lists it, but one live account didn't return it). Ignored: `cancelled_by_name`, `space_name`, `color`, custom fields. No member names are involved at all.
 
 ## How to compute
-Counts are strings: cast to numbers. A missing or empty `max_participants` means the capacity is unknown: leave that class out of fill percentages and count it as "no capacity set".
-1. Drop cancelled classes (`cancelled_status` not `"0"`); report how many were dropped.
+Counts may come as numbers or strings (live: numbers; spec: strings): cast to numbers either way. A missing or empty `max_participants` means the capacity is unknown: leave that class out of fill percentages and count it as "no capacity set".
+1. Drop cancelled classes: rows whose `cancelled_status` is present and not 0. If no row has the field, say "cancelled classes can't be told apart in this data" in the footer.
 2. Fill % = `registration_count` / `max_participants` x 100, rounded.
 3. Nearly empty: fill below the low line. Full: fill at or above the high line. Waiting: `waiting_list_count` above 0.
 4. Group by class name, location, weekday and time slot ("Reformer, Tuesday 18:00, Tel Aviv"). For each slot give the average fill and how many times it ran. A slot that is nearly empty on most of its runs is a real pattern; a single empty class is not. Say "N of M runs".
@@ -36,11 +36,12 @@ Under about 200 classes, do this in-model. With jq (`--argjson low 30 --argjson 
 ```sh
 jq -c --argjson low 30 --argjson high 90 '
 def n: if . == null or . == "" then null else tonumber end;
-[ .data[] | select(.cancelled_status == "0")
+def live: (.cancelled_status // "0" | tostring) == "0";
+[ .data[] | select(live)
   | {date, time: .start_time, cls: .session_name, where: .location_name,
      max: (.max_participants | n), booked: (.registration_count | n), waiting: ((.waiting_list_count | n) // 0)}
   | . + {fill: (if (.max // 0) > 0 and .booked != null then (.booked / .max * 100 | round) else null end)} ] as $c
-| {classes: ($c | length), cancelled_skipped: ([.data[] | select(.cancelled_status != "0")] | length),
+| {classes: ($c | length), cancelled_skipped: ([.data[] | select(live | not)] | length),
    no_capacity: ([$c[] | select(.fill == null)] | length),
    quiet: ([$c[] | select(.fill != null and .fill < $low)] | sort_by(.fill)),
    full: ([$c[] | select(.fill != null and .fill >= $high)] | sort_by(-.waiting, -.fill)),
@@ -52,7 +53,7 @@ HTML rows: `@html "<tr><td>\(.cls)</td><td>\(.where)</td>..."` escapes `& < > " 
 
 ## Owner-adjustable defaults
 - Nearly empty: under 30% full. Full: 90% or more. Ask: "What counts as a quiet class for you, under a third, or under half?"
-- Window: past 4 weeks plus next 2.
+- Window: past 2 weeks plus next 2 (at most 31 days per call).
 - One branch or all branches (default: all, shown per branch).
 
 ## Output
@@ -67,7 +68,7 @@ Demo expected result (14 days from 2026-10-14, thresholds 30 and 90): 72 classes
 
 ## Pitfalls and LIVE CHECKs
 - LIVE CHECK: whether `registration_count` includes standby or cancelled bookings, and what `max_participants` holds for unlimited classes (0, null or a large number). Unlimited classes must not show as 0% or 100%.
-- LIVE CHECK: whether `cancelled_status` `"1"` is the only cancelled value, and what `cancelled=1` / `transparent=1` filters change.
+- LIVE CHECK: `cancelled_status` was absent on one live account; whether `cancelled=1` / `transparent=1` filters change which classes come back.
 - Without `registration_count=1` and `waiting_list_count=1` the fields are absent. If every count is missing, say the flags were not applied; do not print 0.
 - Past classes: the count is bookings, not attendance. Say "booked" unless you used `classesSummaryReport` check-ins.
 - 4 weeks of a busy timetable can pass 500 rows: if the executor prints INCOMPLETE, show the banner and narrow the window or the branch.

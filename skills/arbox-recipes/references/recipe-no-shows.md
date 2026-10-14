@@ -32,7 +32,7 @@ Let TODAY be the run date and FROM be TODAY minus 30 days. Use them as `fromDate
    Fields ignored: email, phone, staff_member, booking_time, location_name.
 
 3. Absence list:
-   `~/.arbox/bin/arbox read /v3/reports/absenceReport --all --out ~/Arbox/work/no-shows/absenceReport.json`
+   `~/.arbox/bin/arbox read /v3/reports/absenceReport fromDate=YYYY-MM-DD toDate=YYYY-MM-DD group_by=user --all --out ~/Arbox/work/no-shows/absenceReport.json` (FROM and TODAY; Arbox requires the dates and `group_by`, and refuses ranges over 31 days)
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
    Fields used: full_name, phone, last_seen, future_registration.
    Fields ignored: debt, memberships, membership_name, latest_registration, email, task_status. This report has no user_id; match on phone.

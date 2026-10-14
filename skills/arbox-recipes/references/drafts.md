@@ -37,7 +37,7 @@ Hi {first_name}, thanks for training with {studio}. Your {plan_en} ends on {end_
 Hi {first_name}, you still have {sessions_left} sessions left on your pack, valid until {end_date}. Want to book a few before then? Just reply and we'll find a time.
 
 **Not back yet, new member (Hebrew):**
-שלום {first_name}, שמחים שהצטרפתם ל-{studio}. נשמח לראות אתכם שוב השבוע. רוצים שנשריין לכם מקום בשיעור הבא? פשוט ענו להודעה הזו.
+שלום {first_name}, שמחים שהצטרפתם ל-{studio}. נשמח לראות אתכם שוב השבוע. רוצים שנשמור לכם מקום בשיעור הבא? פשוט ענו להודעה הזו.
 
 **Not back yet, new member (English):**
 Hi {first_name}, great to have you at {studio}. We'd love to see you again this week. Want us to save you a spot in the next class? Just reply here.

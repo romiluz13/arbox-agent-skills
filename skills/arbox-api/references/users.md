@@ -2,7 +2,7 @@
 
 Person records, memberships, notes, staff lists, waivers and recurring payments. Operations on the `/v3/users` family.
 
-Tier key: **R0** read-only. **R1** reversible internal write (notes, tasks, lead status, create a lead). **R2** member-facing or hard to undo (messages, bookings, edits to a person). **R3** money, identity or delete: never agent-executed in v1.
+Tier key: **R0** read-only. **R1** small internal write, no undo through the API (notes, tasks, lead status, create a lead). **R2** member-facing or hard to undo (messages, bookings, edits to a person). **R3** money, identity or delete: never agent-executed in v1.
 
 Data key: **S0** studio configuration. **S1** personal contact data. **S2** health, national ID, salary, payment or finance data. S1 and S2 reads stay out of chat and go to files by default.
 

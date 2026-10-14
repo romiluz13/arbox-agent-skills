@@ -5,7 +5,7 @@
 ## When to use
 - Owner phrases: "who owes me", "who hasn't paid", "failed payments", "debts", "unpaid", "who do I need to chase", מי חייב לי כסף, חובות, חיובים שנכשלו, תשלומים שלא עברו.
 - Fits every business that bills through Arbox. A declined recurring charge can also block the member from booking in Arbox, so a failed card is often why someone "disappeared".
-- Arbox sends its own overdue reminders if the owner turned them on. Mention it once if the list is long, so they do not chase twice.
+- Arbox may send its own payment reminders; this is not confirmed for every plan. If the list is long, ask the owner once whether reminders are on, so they do not chase twice.
 
 ## Before you start
 - Verify first: on the first live run, compare the total owed in this report with the debt total in Arbox (Finance, open debts) before trusting the rest. The meaning of `debt` (overdue vs scheduled installments) is not documented. LIVE CHECK.
@@ -19,8 +19,9 @@
    `~/.arbox/bin/arbox read /v3/finance/reports/failedTransactions --out ~/Arbox/work/payments-to-chase/failed.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Failed%20Transactions
 3. Tasks already open, so nobody is chased twice (optional but recommended):
-   `~/.arbox/bin/arbox read /v3/tasks from_date=<today-60d> to_date=<today+30d> --all --out ~/Arbox/work/payments-to-chase/tasks.json`
+   `~/.arbox/bin/arbox read /v3/tasks from_date=<today-3d> to_date=<today+3d> --all --out ~/Arbox/work/payments-to-chase/tasks.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20All%20Tasks
+   Arbox refuses a tasks range over 7 days (live-checked 2026-10-15), so this shows tasks due this week only; older open tasks don't appear. Label the column "Task this week", and say "no task found this week", never "nobody followed up". If the call is refused, mark the column unknown.
 4. Optional detail for one person: `transactionsReport` (see Pitfalls). Do not fetch it by default.
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
 

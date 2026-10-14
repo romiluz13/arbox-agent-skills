@@ -17,19 +17,16 @@ Sibling skills: `arbox-guide` (what to build, the owner interview) and `arbox-re
 
 All Arbox calls go through one small script that ships with this skill at `scripts/arbox` (next to this file). It keeps the key out of the chat, the command line and the output; it separates looking (`read`) from changing (`write`); and it refuses risky operations whatever you ask it.
 
-**First use on a computer:** install it to a fixed place so permission rules can name it and every agent uses the same copy.
+**First use on a computer:** install it to a fixed place, so permission rules can name it and every agent uses the same copy. The helper installs itself (and its sample data):
 
 ```sh
-mkdir -p ~/.arbox/bin
-cmp -s <skill-dir>/scripts/arbox ~/.arbox/bin/arbox || cp <skill-dir>/scripts/arbox ~/.arbox/bin/arbox
-chmod 700 ~/.arbox/bin/arbox
-mkdir -p ~/.arbox/demo && cp -R <skill-dir>/assets/demo/. ~/.arbox/demo/
-~/.arbox/bin/arbox --version && ~/.arbox/bin/arbox doctor
+sh <skill-dir>/scripts/arbox install
+~/.arbox/bin/arbox doctor
 ```
 
-`<skill-dir>` is the folder this SKILL.md is in. Rerun the `cmp` line when `--version` differs from this skill's version: the helper updates with the skill.
+`<skill-dir>` is the folder this SKILL.md is in. `install` is safe to repeat: it updates `~/.arbox/bin/arbox` when this skill ships a newer version. Do this before the first call even when you could run `scripts/arbox` directly. The fixed path is what the permission rules in section 3 recognize.
 
-**Always type the command as `~/.arbox/bin/arbox ...`, exactly.** Permission rules match the command text, so a different spelling (full path, `sh` prefix, a variable) loses the protection described in section 3.
+If the helper ever prints a `tip: run 'sh … install'` line, run the install command it shows. **Always type the command as `~/.arbox/bin/arbox ...`, exactly.** Permission rules match the command text, so a different spelling (full path, `sh` prefix, a variable) loses the protection described in section 3.
 
 Never call the Arbox API with raw `curl` and the key, never read `~/.arbox/profiles`, and never put a key in a command. If the helper can't do something, tell the owner rather than working around it.
 
@@ -38,11 +35,11 @@ Never call the Arbox API with raw `curl` and the key, never read `~/.arbox/profi
 Read [references/setup.md](references/setup.md) and follow it. In short:
 
 1. `~/.arbox/bin/arbox doctor`. If a key is already set up, go to step 4.
-2. Tell the owner where the key is: in Arbox, **Settings → Club Information**, the API key (the same key Arbox's Zapier connection uses). If they can't find it, setup.md has a ready email to Arbox support in Hebrew and English.
+2. Tell the owner where the key is: in Arbox, **Settings → Club Information**, the API key (the same key Arbox's Zapier connection uses). That menu name comes from Arbox's Zapier guide and isn't confirmed on a live account; if they can't find it, look around Settings for an API key, or send Arbox support the ready email in setup.md (Hebrew and English).
 3. The owner enters the key themselves, hidden: they open a new Terminal tab (⌘T) and paste one line, `~/.arbox/bin/arbox setup --prompt`. Fallback: `~/.arbox/bin/arbox setup --open` opens a private file in TextEdit; they paste only the key after `default=`.
 4. `~/.arbox/bin/arbox doctor --online` to test it. Success means connected; say so in one line.
 
-**Not ready to connect?** Offer sample data: any read works with `--demo` on a made-up studio. Always say it is sample data.
+**Not ready to connect?** Offer sample data: `--demo` serves a made-up studio for locations, users, schedule, leads, tasks, membership types and every report the recipes use; other paths say there is no sample data. Always say it is sample data.
 
 If the owner pastes a key into the chat anyway: don't repeat it, don't use it, tell them kindly that chat history is stored, and suggest creating a new key in Arbox and entering it through step 3.
 
@@ -59,12 +56,12 @@ Offer to add these rules to the owner's Claude Code user settings (usually `~/.c
   "permissions": {
     "allow": ["Bash(~/.arbox/bin/arbox read *)", "Bash(~/.arbox/bin/arbox doctor *)", "Bash(~/.arbox/bin/arbox --version)"],
     "ask": ["Bash(~/.arbox/bin/arbox write *)"],
-    "deny": ["Read(~/.arbox/profiles)", "Edit(~/.arbox/profiles)"]
+    "deny": ["Read(~/.arbox/profiles)", "Edit(~/.arbox/**)"]
   }
 }
 ```
 
-Why each part: reads run without interruptions; the `ask` rule keeps every change prompting even if someone clicks "don't ask again" (ask rules are checked before allow rules); the `deny` rules stop the agent's file tools, and shell commands like `cat`, from opening the key file. Tell owners not to use bypass or "accept everything" modes with their Arbox; those turn the prompts off.
+Why each part: reads run without interruptions. The `ask` rule makes a write typed as `~/.arbox/bin/arbox write ...` prompt every time, even after a "don't ask again" click (ask rules are checked before allow rules). The `deny` rules stop the agent's file tools and Bash commands such as `cat` from reading the key file, and stop file edits anywhere in `~/.arbox` (so the helper itself can't be altered); they don't stop a script that opens the file itself. These rules are prompts, not a security boundary. The gate that holds is the helper: it refuses every write outside its seven, whatever the spelling, and every write needs the owner's yes. Tell owners not to use bypass or "accept everything" modes with their Arbox; those turn the prompts off.
 
 In other agents (Cursor, Codex, Gemini CLI...), the read/write split is the same, but whether `write` prompts depends on that agent's approval settings. Keep approvals on for `arbox write`.
 
@@ -75,16 +72,16 @@ Read [references/safety.md](references/safety.md) before any change. Each operat
 | Tier | What | What you do |
 |---|---|---|
 | R0 | Reads: members, schedule, leads, reports, finance reports | Run freely. Write lists to files (section 5). |
-| R1 | Small reversible updates: create a lead, update lead status, mark a lead lost, add a lead note, create a task, complete a task, add a member note | Only with the confirm protocol below. These 7 are the only writes the helper allows. |
+| R1 | Small internal updates (no undo through the helper): create a lead, update lead status, mark a lead lost, add a lead note, create a task, complete a task, add a member note | Only with the confirm protocol below. These 7 are the only writes the helper allows. |
 | R2 | Member-facing: messages, bookings, cancellations, trial bookings, schedule changes | Not done by the agent in v1. Prepare a draft or a list; the owner does it in Arbox. |
 | R3 | Money, identity, deletes: memberships (create, cancel, freeze, change), recurring payments, finance documents, merging or deleting users, editing member profiles or health data | Refuse kindly; point to the Arbox app. The helper refuses these too. |
 
-**Confirm protocol for R1.** Before the call, show the owner in their language: what will change, for whom (names, how many), which branch, and that it can be undone in Arbox. Wait for an explicit yes to that exact change. Then call once with `--yes-i-confirmed`, report the result, and never retry a failed write on your own. A yes covers that change only, not the next one. The flag is a record for the activity log, not a security gate: the real gate is the owner's yes and the permission prompt.
+**Confirm protocol for R1.** Before the call, show the owner in their language: what will change, for whom (names, how many), which branch, and that the helper can't undo it (a task can be marked done; a note stays). Wait for an explicit yes to that exact change. Then call once with `--yes-i-confirmed`, report the result, and never retry a failed write on your own. A yes covers that change only, not the next one. The flag is a record for the activity log, not a security gate: the real gate is the owner's yes and the permission prompt.
 
 ## 5. Reading data well
 
 - **Lists go to files:** `~/.arbox/bin/arbox read /v3/users --all --out ~/Arbox/work/users.json`. Then look at the count and the fields you need. Don't paste member lists into the chat. `--out` only writes under `~/Arbox/`.
-- **Pagination:** `--all` fetches every page (500 per page, up to 20 pages). If it prints INCOMPLETE, say totals are "at least". The API gives no total count, so never state a total from one page.
+- **Pagination:** `--all` fetches every page (500 per page, up to 20 pages). If it prints INCOMPLETE, say totals are "at least". Without jq the pages aren't merged: read `<file>.manifest.txt` and the `<file>.page-N.json` files it lists (`doctor` shows whether jq is installed). The API gives no total count, so never state a total from one page.
 - **Dates:** many finance reads cap the range at 31 days; loop month by month. See [references/quirks.md](references/quirks.md).
 - **Ids:** numbers in requests, often strings in responses; `user_id` can differ in type between operations. Ignore `enum: [0]` on id fields, which is a spec artifact.
 - **Lookup chains:** most actions need ids you fetch first (a member's `user_id` from search, a `location_id` from `/v3/locations`). Each operation's entry lists its chain.

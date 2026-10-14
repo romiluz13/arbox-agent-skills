@@ -38,7 +38,7 @@ Tracker: this file (user decision: no GitHub issues). Status values: `todo` / `d
 | 08 | Evals: skill-creator with/without runs for 3-4 flagship prompts, grading, viewer (static) | lead + subagents | 04-06 | done (evals/results.md) |
 | 09 | Public docs: README (owner-first), CONTRIBUTING, CHANGELOG, docs/decisions.md | lead | 04-06 | done |
 | 10 | Team review and vouch: each member reviews everything and signs `docs/plan/review.md`; fixes loop | all | 07-09 | done (docs/plan/review.md, all three signed) |
-| 11 | Publish: commit, push, tag, GitHub release | lead | 10 | doing |
+| 11 | Publish: commit, push, tag, GitHub release | lead | 10 | done (arbox--v0.9.0, prerelease) |
 | L  | Live checks L1-L10 on the test gym (read-only first) | haiku | key from user | done for reads on a test gym (docs/plan/live-check-results.md); writes (G10) not run |
 
 ## Ticket details

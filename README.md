@@ -80,7 +80,7 @@ Pick one channel, not both. Then just talk to your agent: *"what can I build wit
 
 ## Getting your Arbox API key
 
-In Arbox, look under **Settings → Business information** for the API key. If you don't see it, your plan may not include API access. The `arbox-api` skill gives you a ready-to-send email to Arbox support (Hebrew and English).
+In Arbox, go to **Settings → Club Information** and copy the API key. It's the same key Arbox's Zapier integration uses ([Arbox Academy](https://academy.arboxapp.com/lesson/zapier-arbox-integration)). If you don't see it, ask Arbox support. The `arbox-api` skill gives you a ready-to-send email to Arbox support (Hebrew and English).
 
 ## Status
 

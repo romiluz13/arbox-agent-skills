@@ -33,7 +33,7 @@ From the pricing page. Prices in USD, annual billing; check the page before quot
 
 UNKNOWN: which plan includes API access (the pricing page does not say; ask Arbox or check at connect time), plan gates for waitlists, memberships, Stripe, SMS, and whether add-ons (cash and check deposits, expenses, inventory) cost extra. The pricing page says invoicing may require an additional fee even though Free lists payments and invoicing.
 
-"Smart insights" is a reporting feature; do not call it AI. Arbox names no AI feature of its own.
+"Smart insights" is a reporting feature; do not call it AI. The help center (WhatsApp article, March 2026) announces an AI agent for scheduling and replies inside the smart inbox as "coming soon"; treat it as not available unless the owner says they have it.
 
 ## Operating models
 
@@ -71,7 +71,7 @@ The connection is the Arbox public API: about 65 operations, mostly reading. Ful
 | Check-in web app | Staff and coaches mark attendance; flags for new, birthday, debt, injury; entrance tablet option | UNKNOWN | https://academy.arboxapp.com/lesson/check-in-interface |
 | Zapier | Triggers (new lead, new client, renewal, waitlist enrolment, cancellation, purchase, form signed) and actions (create lead, create task, send message, search client, get schedule) | UNKNOWN | https://academy.arboxapp.com/lesson/zapier-arbox-integration |
 | Schedule link, embedded schedule, lead form, shop link | A booking page for any site, no code | Free | https://www.arboxapp.com/features-pages/website |
-| WhatsApp | Integrated WhatsApp guide; automatic WhatsApp for personal appointments | UNKNOWN | https://help.arboxapp.com/he/articles/11196342-מדריך-חיבור-וואטסאפ-אינטגרלי-למערכת |
+| WhatsApp | Integrated WhatsApp, connected by QR code, for a fixed monthly fee. Automatic messages via auto actions (trial booking, declined card, membership cancellation, birthday, new lead, waitlist entry). Manual messages from the calendar (participant management) with name fields. A smart inbox shows chats beside the member's debts, plans and tasks | Fee: fixed monthly (amount not stated); plan UNKNOWN | https://help.arboxapp.com/he/articles/11196342-מדריך-חיבור-וואטסאפ-אינטגרלי-למערכת |
 | Clinics and therapists | Personal appointments, treatment documentation PDF | UNKNOWN | https://help.arboxapp.com/he/articles/12309679-ניהול-פגישות-אישיות-לקליניקות-ומטפלים |
 | Payroll report | Hours and pay for staff | UNKNOWN | https://help.arboxapp.com/he/articles/15516336-איך-לחסוך-שעות-בחישוב-שכר-לצוות-עם-דוח-השכר-החדש |
 | Accounting export (Israel) | Hashavshevet export, allocation number | UNKNOWN | https://help.arboxapp.com/he/articles/16131156-הגדרת-הנהלת-חשבונות-וייצוא-לחשבשבת |

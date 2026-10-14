@@ -31,7 +31,7 @@ Tracker: this file (user decision: no GitHub issues). Status values: `todo` / `d
 | 01 | Scaffold: dirs, plugin.json, marketplace.json, LICENSE (MIT), .gitignore, `tools/validate.py`, CI workflow | sonnet | none | done |
 | 02 | Executor `skills/arbox-api/scripts/arbox` + `tests/` fake server + `tests/run.sh` | sonnet | 01 | todo |
 | 03 | `arbox-api` references: endpoints by tag, reports, quirks, doc-link index, openapi snapshot | haiku | 01 | todo |
-| 04 | `arbox-api` SKILL.md: setup flow, safety tiers, executor usage, Documentation | sonnet | 02, 03 | todo |
+| 04 | `arbox-api` SKILL.md: setup flow, safety tiers, executor usage, Documentation | lead | 02, 03 | todo |
 | 05 | `arbox-guide`: SKILL.md, interview, ideas catalog, product knowledge, glossary (HE/EN), Documentation | sonnet | 03, T5 debate | review |
 | 06 | `arbox-recipes`: SKILL.md, the 6 debated recipes, HTML report template, routines, Documentation | sonnet | 04, T5 debate | todo |
 | 07 | Packaging check: `claude plugin validate`, `npx skills add . --list`, local plugin install smoke | haiku | 04-06 | todo |

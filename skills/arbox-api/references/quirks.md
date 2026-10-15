@@ -53,7 +53,7 @@ Three encodings are used for the same idea:
 - **Query flags:** strings `"0"` or `"1"`, for example `active`, `cancelled`, `transparent`, `success`, `hideHold`.
 - **Consent flags in bodies:** `allow_sms` and `allow_email` are `"yes"` / `"no"` on create. On PATCH they also accept `"unknown"`. Treat `"unknown"` as "do not message".
 - **JSON booleans:** most other body flags, for example `late_cancellation`, `has_waiver`, `medical_cert`, `restricted`.
-- **Booleans in responses are often strings.** Report fields such as `has_waiver`, `has_another_plan`, `cancelled` and `medical_cert` are typed `string` with no enum. Expect `"true"`/`"false"` or `"0"`/`"1"`, and confirm on the live response (LIVE CHECK G5) before filtering on them.
+- **Booleans in responses are strings, usually `"yes"`/`"no"`.** Report fields such as `has_waiver`, `has_another_plan`, `cancelled` and `future_registration` are typed `string` with no enum. A live account sent `"yes"`/`"no"` (field report, 2026-10-15); `"true"`/`"false"` and `"0"`/`"1"` appear elsewhere. Map all three forms with one rule (`skills/arbox-recipes/references/fields.md`) and treat any other value as unknown.
 
 `active` is typed three ways: boolean on `POST /v3/users`, `number` on `PATCH /v3/users`, and a `"0"` / `"1"` / `"2"` filter on `GET /v3/users/memberships` (the value `2` is unlabelled). LIVE CHECK: accepted values of `active` on PATCH.
 
@@ -89,7 +89,7 @@ Some operations declare the same name as a path parameter and as a query paramet
 
 - Declared responses: 200, plus 422 on most operations. The 422 body is `{message, errors: {<field>: [string]}}` (`ValidationException`).
 - `ModelNotFoundException` (`{message}`) is defined in components, but **no operation declares a 404**.
-- 401, 403 and 429 are not declared anywhere. No rate limit is documented.
+- 401, 403 and 429 are not declared anywhere. No rate limit is documented, but a second call in parallel with the same key got 429 "concurrent requests not allowed" (field report, 2026-10-15). Make calls one at a time; the helper waits and retries a read up to twice.
 - **No write documents idempotency.** Never auto-retry a write. A repeated `POST` may create a duplicate, return an error, or do nothing. LIVE CHECK per operation.
 - Writes with no documented undo: `POST /v3/leads/createNote`, `POST /v3/users/createNote`, `POST /v3/users/group` (no ungroup), `PATCH /v3/users/injury` (old value unreadable), and `POST /v3/message` (sent). Treat them as one-way.
 

@@ -39,15 +39,15 @@ Add `--demo` to each command to read sample data instead. Add `-p <profile>` to 
 
 ## How to compute
 
-Plain rules first. Any tool can follow them.
+Plain rules first. Any tool can follow them. Flags follow [fields.md](fields.md): live accounts send `"yes"`/`"no"`.
 
-1. **Window.** Keep a row only when its end_date is from TODAY to END, inclusive. Keep this filter even if the report returned more rows, because what `fromDate` and `toDate` filter on is unverified (LIVE CHECK).
+1. **Window.** Keep a row only when its end_date is from TODAY to END, inclusive. The membership reports filter on end_date (live, 2026-10-15); keep this filter anyway, so the window holds for every report.
 2. **One person, one row.** Match people on user_id, compared as a number. A person in both reports gets one row that shows both facts. Never count one person twice.
-3. **Cancelled.** If cancelled is "1", put the row in the "Cancelled, check" section. No draft. Do not show the cancel reason.
-4. **Renewal in place.** If has_another_plan or has_another_session is "true", put the row in "Renewal in place". No draft.
+3. **Cancelled.** If cancelled is a yes flag, put the row in the "Cancelled, check" section. If it is unknown, put it there too, labelled "cancel status unknown". No draft. Do not show the cancel reason.
+4. **Renewal in place.** If has_another_plan or has_another_session is a yes flag, put the row in "Renewal in place". No draft.
 5. **Needs renewal.** Every other row.
 6. **Sessions left.** Read sessions_left as a whole number. If it is null or empty, show "not reported". Never show null or blank as 0. Membership rows have no sessions_left; show a dash.
-7. **Channel.** allow_sms "yes" gives channel sms. Otherwise allow_email "yes" gives channel email. Otherwise channel none. "no" and "unknown" both mean do not message.
+7. **Channel.** allow_sms yes gives channel sms. Otherwise allow_email yes gives channel email. Otherwise channel none. "no" and "unknown" both mean do not message.
 8. **Sort** "Needs renewal" by end_date, earliest first.
 9. **Counts** for the summary: needs renewal; can be messaged (channel is not none); renewal in place; cancelled; unbooked credits.
 
@@ -80,8 +80,8 @@ If the fetch printed INCOMPLETE, or the file list shows `.page-N.json` pages wit
 Members who still hold sessions but have nothing booked. A row qualifies when:
 
 - sessions_left is a whole number above 0 (a null never qualifies),
-- future_schedules is "0",
-- cancelled is "0",
+- future_schedules is 0 (a number live, `"0"` in older data),
+- cancelled is a no flag,
 - end_date is TODAY or later.
 
 Sort by end_date, earliest first. Show it as its own section, "Unbooked credits: book before the pack ends", on the same HTML page, with its own card and CSV rows. A row is not listed when the member has a future booking. The nudge text goes only into drafts, with the template in drafts.md.
@@ -100,9 +100,9 @@ Check the 7 in Arbox: the Retention report (memberships expiring without renewal
 
 ## Pitfalls and LIVE CHECKs
 
-- **LIVE CHECK (date filter):** what `fromDate` and `toDate` filter on is not stated in the spec. The recipe filters end_date itself, so the window holds either way.
+- **Date filter and cap:** the membership reports filter on end_date and refuse a window over 31 days (live, 2026-10-15). For a 30-day look-ahead that is fine; never ask for more in one call.
 - **null is not 0.** LIVE CHECK: whether null in sessions_left means unlimited, not set, or none left. The demo has a null on a monthly-plan row (Maya Levi). Show "not reported" and never send a count for it.
-- **Flags are strings.** has_another_plan and has_another_session are "true"/"false"; cancelled is "0"/"1". Confirm on the first live call (LIVE CHECK G5) before trusting the filters.
+- **Flags are "yes"/"no".** has_another_plan, has_another_session and cancelled came back as `"yes"`/`"no"` on a live account; the spec says only "string". Read them with the flag rule in [fields.md](fields.md), never by testing for `"true"` or `"1"`.
 - **Consent on membership rows.** expiringMembershipsReport has no allow flags. Read them from the user record. Never assume consent.
 - **membership_user_id is the membership, not the person.** Match on user_id only.
 - **Renewal already in place** comes from the has_another flags. If a member renewed under a different plan name and the flag is not set, the row shows as needing renewal. LIVE CHECK on a known renewal.

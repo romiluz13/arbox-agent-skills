@@ -35,7 +35,7 @@ Let TODAY be the run date and FROM be TODAY minus 30 days. Use them as `fromDate
    `~/.arbox/bin/arbox read /v3/reports/absenceReport fromDate=YYYY-MM-DD toDate=YYYY-MM-DD group_by=user --all --out ~/Arbox/work/no-shows/absenceReport.json` (FROM and TODAY; Arbox requires the dates and `group_by`, and refuses ranges over 31 days)
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
    Fields used: full_name, phone, last_seen, future_registration.
-   Fields ignored: debt, memberships, membership_name, latest_registration, email, task_status. This report has no user_id; match on phone.
+   Fields ignored: id (not a user id), debt, memberships, membership_name, latest_registration, email, task_status. This report has no user_id; match on phone key. Its dates do not filter on last_seen (live, 2026-10-15), so rule 5 applies the date itself.
 
 4. Consent and phone matching:
    `~/.arbox/bin/arbox read /v3/users --all --out ~/Arbox/work/no-shows/users.json`
@@ -46,13 +46,13 @@ Add `--demo` to each command to read sample data instead. Add `-p <profile>` to 
 
 ## How to compute
 
-Plain rules first.
+Plain rules first. The flag and phone rules come from [fields.md](fields.md).
 
 1. **Late cancel window.** A late cancel counts when the date of cancelled_time is from FROM to TODAY, inclusive. A row from lateCancellationReport is a late cancel, as the report defines it.
-2. **Member key.** lateCancellationReport and absenceReport have no user_id. Match them to the users file on phone, with spaces and dashes removed. If no phone matches, show the row as "not matched" with the name. Never match by name. If a phone matches two users, show "not matched, check".
+2. **Member key.** lateCancellationReport and absenceReport have no user_id. Match them to the users file on phone key as [fields.md](fields.md) defines it: digits only, a leading 00 dropped, a leading 972 becomes 0 (live phones mix `05x` and `+972`). If no phone matches, show the row as "not matched" with the name. Never match by name. If a phone matches two users, show "not matched, check".
 3. **Count per member** of late cancels in the window.
 4. **Reached the line.** A member reaches the line when they have 2 or more late cancels in the last 7 days (TODAY minus 7 days through TODAY). This is the default line; see Owner-adjustable defaults.
-5. **Not seen since (absence).** An absenceReport row with an empty future_registration and a last_seen on or before FROM. This means "not seen since", not a no-show count. Show last_seen as given.
+5. **Not seen since (absence).** An absenceReport row with nothing booked ahead (future_registration empty, null or `"no"`; live accounts send `"no"`) and a last_seen on or before FROM. This means "not seen since", not a no-show count. Show last_seen as given.
 6. **Cross-check (LIVE CHECK, for the builder).** Every late cancel should also appear in bookingCancellationReport for the same member and the same date. Count how many do. If not all do, label the totals "unverified" at the top of the output.
 7. **All cancellations for context.** List every bookingCancellationReport row in the window with hours_before. Do not flag from this list.
 8. **hours_before** is a string. Show it as given. The report decides what "late" means. If the owner gives a different cancel window, say so in the output. Do not re-decide late cancels yourself.
@@ -91,7 +91,7 @@ Check in Arbox: Sean O'Brien's late cancels in the late-cancellation report for 
 - **absenceReport is the only no-show proxy.** The spec does not define "absence", so it may include people who were never booked. Show it as "not seen since", not as a no-show count.
 - **Cross-check must hold on a live account.** On the demo all 4 late cancels match a booking cancellation. If a live run matches fewer, the output says "unverified" and the totals are not presented as final.
 - **Penalties already enabled.** If blocks already apply, the late-cancel list shows the outcome of blocks the owner knows about. Say so when the owner has penalties on.
-- **Duplicate phones.** Two members sharing a phone match the wrong person. The recipe reports "not matched, check" instead of guessing.
+- **Duplicate phones.** Two members sharing a phone key match the wrong person. The recipe reports "not matched, check" instead of guessing.
 - **Types.** user_id is an integer in bookingCancellationReport and a string in /v3/users. Compare as numbers. hours_before is a string.
 - **HTML in names.** Escape names in HTML. In chat, show names as plain text.
 

@@ -28,13 +28,13 @@ Let TODAY be the run date. Use TODAY and TODAY plus 30 days where a date is need
 2. Signed forms:
    `~/.arbox/bin/arbox read /v3/reports/signedFormsReport toDate=<today> --all --out ~/Arbox/work/waivers-and-forms/signedFormsReport.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
-   Fields used: user_id, form_id, type, status, sign_date, exp_date.
-   Fields ignored: full_name, phone, email, sent_by, lead_owner, lead_owner_id, user_role, allow_email, allow_sms.
+   Fields used: user_id, type, status, sign_date, exp_date.
+   Fields ignored: form_id (the signature record's id, not the form's), full_name, phone, email, sent_by, lead_owner, lead_owner_id, user_role, allow_email, allow_sms.
 
-3. Form names:
+3. Form names, for context only (the signed rows cannot be joined to them):
    `~/.arbox/bin/arbox read /v3/digitalForms --all --out ~/Arbox/work/waivers-and-forms/digitalForms.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Digital%20Forms
-   Fields used: form_id, name, active. Use only the active forms.
+   Fields used: name, active. Use only the active forms.
    Fields ignored: content. It can be large. Never load it into chat.
 
 4. New members only (optional, only if the owner asks):
@@ -46,27 +46,27 @@ Add `--demo` to each command to read sample data instead. Add `-p <profile>` to 
 
 ## How to compute
 
-Plain rules first.
+Plain rules first. Flags follow [fields.md](fields.md): live accounts send `"yes"`/`"no"`. In signedFormsReport, a waiver row has `type` `HASWAIVER` and the health form row has `type` `MEDICALCERT` (live, 2026-10-15). That `MEDICALCERT` is the studio's health declaration, not a doctor's certificate, is an assumption (LIVE CHECK): confirm it with the owner once, below.
 
-1. **Waiver on file.** has_waiver is "true" in membersPropertiesReport and the member has a waiver row in signedFormsReport (type `waiver`).
-2. **Missing a waiver.** has_waiver is "false" and the member has no waiver row. Any other value (empty, unknown) goes to "Unknown, check", not "Missing".
-3. **Flag and form disagree.** has_waiver is "true" but there is no waiver row, or the reverse. Count them and show the count in the summary. Do not decide which source is right.
-4. **Missing a health declaration.** A member in membersPropertiesReport with no row in signedFormsReport of type `health declaration`. Show as its own section.
-5. **Forms expiring.** A waiver or health declaration row whose exp_date is from TODAY to TODAY plus 30 days. Show as its own section.
+1. **Waiver on file.** has_waiver is a yes flag in membersPropertiesReport and the member has a waiver row in signedFormsReport.
+2. **Missing a waiver.** has_waiver is a no flag and the member has no waiver row. Any other value (empty, unknown) goes to "Unknown, check", not "Missing".
+3. **Flag and form disagree.** has_waiver is a yes flag but there is no waiver row, or a no flag with a waiver row. Count them and show the count in the summary. Do not decide which source is right.
+4. **Missing a health form (MEDICALCERT).** A member in membersPropertiesReport with no `MEDICALCERT` row in signedFormsReport. Show as its own section.
+5. **Forms expiring.** A `HASWAIVER` or `MEDICALCERT` row whose exp_date is from TODAY to TODAY plus 30 days. Show as its own section.
 6. **New only (optional).** Keep a missing member only if they have a salesReport row in the last 14 days.
-7. **Form names.** Map each signed row's form_id to a name in digitalForms, using active forms only. A signed row whose type does not exactly match its form's name shows as "type (raw)". Never guess a match.
-8. **Channel.** From membersPropertiesReport: allow_sms "yes" gives sms; otherwise allow_email "yes" gives email; otherwise none. "no" and "unknown" both mean do not message.
+7. **Form names.** Show `HASWAIVER` as "Waiver" and `MEDICALCERT` as "Health form (MEDICALCERT)" until the owner confirms what it is. Any other `type` shows as "type (raw)" and counts as neither. form_id is the signature record's id, not the digitalForms id, so never map it to a form name.
+8. **Channel.** From membersPropertiesReport: allow_sms yes gives sms; otherwise allow_email yes gives email; otherwise none. "no" and "unknown" both mean do not message.
 9. **Sort** missing members by full_name.
 
 ## Owner-adjustable defaults
 
 - **Scope:** all members on file. Ask: "Only members who joined recently?" If yes, use the new-only filter with 14 days.
 - **Expiring window:** 30 days.
-- **Form names:** the waiver is the signed-form type "waiver", and the health form is "health declaration". Ask only if the studio calls them something else: "What do you call the waiver and the health form?"
+- **Form names:** the waiver is the signed-form type `HASWAIVER`, and the health form is `MEDICALCERT`. On the first live run, ask once: "Arbox labels your signed forms HASWAIVER and MEDICALCERT. Is MEDICALCERT your health declaration, or a doctor's certificate?" Save the answer in the routine if there is one, otherwise in `~/Arbox/business-profile.md`. If it is the health declaration, title the section "Missing a health declaration". If it is a doctor's certificate, title it "Missing a medical certificate" and say on the page that no health-declaration check was possible. If a live run shows other types, ask which is which.
 
 ## Output
 
-- **HTML:** fill the report template (`assets/report.html` in this skill). Save as `~/Arbox/reports/waivers-and-forms-YYYY-MM-DD.html`. Title "Waivers and forms". Show the date range, the data time, and the filter definition. Summary cards: missing a waiver, on file, missing a health declaration, unknown, flag and form disagree, forms expiring. Sections: "Missing a waiver", "Missing a health declaration", "Forms expiring in 30 days", "Unknown, check", "Flag and form disagree (count only)". Show the truncation banner when a fetch was INCOMPLETE. Show the SAMPLE DATA banner for demo data.
+- **HTML:** fill the report template (`assets/report.html` in this skill). Save as `~/Arbox/reports/waivers-and-forms-YYYY-MM-DD.html`. Title "Waivers and forms". Show the date range, the data time, and the filter definition. Summary cards: missing a waiver, on file, missing a health form (MEDICALCERT), unknown, flag and form disagree, forms expiring. Sections: "Missing a waiver", "Missing a health form (MEDICALCERT)", "Forms expiring in 30 days", "Unknown, check", "Flag and form disagree (count only)". Show the truncation banner when a fetch was INCOMPLETE. Show the SAMPLE DATA banner for demo data.
 - **CSV (contact list):** `~/Arbox/reports/waivers-and-forms-YYYY-MM-DD.csv`. Columns: section, full_name, user_id, phone, form, exp_date, channel, note. Health values never appear in this file. UTF-8 with BOM. Prefix any cell that starts with = + - @, a tab or a carriage return with an apostrophe.
 - **Drafts (optional):** for "Missing a waiver" rows with a channel, as [drafts.md](drafts.md) describes. The owner adds the form link; the agent does not create one.
 - **Chat:** 3-5 lines with the counts and the two file paths.
@@ -76,8 +76,8 @@ Plain rules first.
 On `--demo`, run on 2026-10-14, the expected result is:
 
 - Missing a waiver: 1 member, Carmit Dror (user 100033, phone 050-000-0033). Channel sms.
-- On file: 39 members (has_waiver "true", with a waiver row).
-- Missing a health declaration: 0. All 40 members have one.
+- On file: 39 members (has_waiver `"yes"`, with a `HASWAIVER` row).
+- Missing a health form (MEDICALCERT): 0. All 40 members have a `MEDICALCERT` row.
 - Unknown, check: 0.
 - Flag and form disagree: 0.
 - Forms expiring in 30 days: 1, ליאת רגב's waiver, which expires 2026-11-05. The other waivers expire 2027-09-20.
@@ -88,11 +88,11 @@ Check in Arbox: the Digital forms screen and the signed-forms view for the waive
 
 ## Pitfalls and LIVE CHECKs
 
-- **LIVE CHECK G5 (flags are strings).** has_waiver is a string in the spec, with values "true" and "false" in the demo. Confirm on the first live call before trusting the filter.
+- **Flags are "yes"/"no".** has_waiver is a string in the spec; a live account sent `"yes"`/`"no"`. Testing for `"true"` put every member in "Unknown" there. Read it with the flag rule in [fields.md](fields.md).
 - **Flag and form must agree.** On the demo they agree for all 40 members. If a live run disagrees, the output shows the count and does not choose a source. Which source is right is unknown (LIVE CHECK).
-- **LIVE CHECK (form_id).** The demo sets signedFormsReport `form_id` to the digitalForms `form_id` (101 waiver, 102 health declaration). Confirm that the live report uses the same id, not a signed-record id.
-- **Type is free text.** signedFormsReport `type` has no documented values. Match exactly to digitalForms names, or show it raw.
-- **medical_cert is a health value.** It is "true" on every demo row. Never show it, count it, or put it in a file.
+- **form_id is a signature id.** On a live account signedFormsReport `form_id` was the signature record's id, so form names cannot be joined. The recipe goes by `type`.
+- **Type values.** The spec lists none; a live account showed `HASWAIVER` and `MEDICALCERT`. LIVE CHECK: other form kinds may show other types; show them raw.
+- **medical_cert is a health value.** It is `"yes"` on every demo row. Never show it, count it, or put it in a file.
 - **digitalForms content.** The content field can be large and may hold form text. The recipe never prints it.
 - **New means a sale.** "New" comes from salesReport, which has its own LIVE CHECK (see the first-30-days recipe). A member with no sale in the window is not new.
 - **Expired forms.** LIVE CHECK: whether an expired form drops out of signedFormsReport or still shows with an old exp_date. The recipe shows exp_date as given.

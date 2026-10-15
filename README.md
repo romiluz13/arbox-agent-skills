@@ -143,7 +143,7 @@ Health and injury details, ID numbers, addresses, card digits and staff salaries
 
 ## Status
 
-**v0.9.0, release candidate.** The helper is tested against a fake Arbox server, recipes are checked against the official spec, and the skills are checked with [evals](evals/results.md). Verification against a live Arbox account is in progress. Each report asks you to compare one number with your Arbox screen on first run; if it doesn't match, please [open an issue](https://github.com/romiluz13/arbox-agent-skills/issues).
+**v0.9.1, release candidate.** The helper is tested against a fake Arbox server, recipes are checked against the official spec and run on one live test account (fixes from that run are in [CHANGELOG.md](CHANGELOG.md)), and the skills are checked with [evals](evals/results.md). A busy studio has not been checked yet. Each report asks you to compare one number with your Arbox screen on first run; if it doesn't match, please [open an issue](https://github.com/romiluz13/arbox-agent-skills/issues).
 
 ## For developers
 

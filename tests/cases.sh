@@ -321,15 +321,65 @@ t "ARBOX_BASE_URL is refused unless it is http://127.0.0.1 or localhost" case_ba
 
 case_bad_paths_rejected() {
   write_profiles "default=$TESTKEY"
-  for bad in "/v3/../etc/passwd" "https://evil.example.com/v3/x" "/v3/users?active=1" "/v2/users" "v3/users" "//v3/users" "/v3/us ers" "/v3/users#x" "/v3/users/%2e%2e/x" "/v3/a\\b"; do
+  for bad in "/v3/../etc/passwd" "https://evil.example.com/v3/x" "/v3/users?a=%2e" "/v3/us?ers/../x" "/v2/users" "v3/users" "//v3/users" "/v3/us ers" "/v3/users#x" "/v3/users/%2e%2e/x" "/v3/a\\b"; do
     run_arbox read "$bad"
     [ "$RC" -eq 2 ] || fail "read '$bad': expected exit 2, got $RC"
   done
   run_arbox write POST "/v3/../x" --body '{}' --yes-i-confirmed
   [ "$RC" -eq 2 ] || fail "write ../ : expected exit 2, got $RC"
+  run_arbox write POST "/v3/leads?user_id=5" --body '{}' --yes-i-confirmed
+  [ "$RC" -eq 2 ] || fail "write with ?query: expected exit 2, got $RC"
   assert_requests 0
 }
-t "paths must be plain /v3/... paths (no .., URLs, query, spaces, encoded dots)" case_bad_paths_rejected
+t "paths must be plain /v3/... paths (no .., URLs, encoded text, spaces; no ?query on write)" case_bad_paths_rejected
+
+case_read_query_string_form() {
+  write_profiles "default=$TESTKEY"
+  run_arbox read "/v3/params?fromDate=2026-09-01&toDate=2026-09-30" group_by=user
+  assert_rc 0
+  [ "$(nth_request 1 3)" = "/api/public/v3/params" ] || fail "path was: $(nth_request 1 3)"
+  [ "$(nth_request 1 4)" = "fromDate=2026-09-01&toDate=2026-09-30&group_by=user" ] || fail "query was: $(nth_request 1 4)"
+  run_arbox read "/v3/params?q=a%20b"
+  assert_rc 2
+  assert_err_has "arbox read /v3/params q="
+  run_arbox read "/v3/params?q=a+b"
+  assert_rc 2
+  run_arbox read "/v3/params?x=1#y"
+  assert_rc 2
+  run_arbox read "/v3/users?page=2" --all
+  assert_rc 2
+  run_arbox read "/v3/params?fromDate"
+  assert_rc 2
+  assert_requests 1
+}
+t "read accepts /v3/path?a=b&c=d as filters; refuses %, + and # (URL syntax), bare names and paging with --all" case_read_query_string_form
+
+case_read_retries_429() {
+  write_profiles "default=$TESTKEY"
+  run_arbox read /v3/busy fail=2 run="$CASE_N"
+  assert_rc 0
+  assert_requests 3
+  assert_out_has '"hits":3'
+  assert_err_has "trying again in 1 s"
+  [ "$(wc -l <"$ACT" | tr -d ' ')" -eq 3 ] || fail "activity log should have 3 lines: $(cat "$ACT")"
+  : >"$FAKE_LOG"
+  run_arbox read /v3/busy fail=9 run="$CASE_N"
+  assert_rc 4
+  assert_requests 3
+  assert_err_has "HTTP 429"
+  assert_key_nowhere
+}
+t "read: HTTP 429 waits and retries twice, then explains in plain words (exit 4)" case_read_retries_429
+
+case_write_never_retries_429() {
+  write_profiles "default=busy-$TESTKEY"
+  run_arbox write POST /v3/tasks --body '{"a":1}' --yes-i-confirmed
+  assert_rc 4
+  assert_requests 1
+  assert_err_has "HTTP 429"
+  assert_key_nowhere
+}
+t "write: HTTP 429 is never retried (one request, exit 4)" case_write_never_retries_429
 
 case_query_params_encoded() {
   write_profiles "default=$TESTKEY"

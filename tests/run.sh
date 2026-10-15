@@ -1,5 +1,5 @@
 #!/bin/sh
-# Entry point: `sh tests/run.sh`. Needs sh, curl, python3 (fake server only).
+# Entry point: `sh tests/run.sh`. Needs sh, curl, python3 (fake server only); the recipe checks also need jq.
 # Exits 0 only if every case passes.
 # shellcheck disable=SC2034  # ARBOX, CASE_N and FAKE_* are read by the sourced lib.sh and cases.sh
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -38,6 +38,8 @@ export ARBOX_BASE_URL
 . "$HERE/lib.sh"
 # shellcheck source=cases.sh
 . "$HERE/cases.sh"
+# shellcheck source=recipes.sh
+. "$HERE/recipes.sh"
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 if [ "$FAIL" -ne 0 ]; then

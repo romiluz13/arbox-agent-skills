@@ -23,11 +23,11 @@ All with `~/.arbox/bin/arbox read ... --all --out ~/Arbox/work/leads-and-trials/
 Fields used: leadsInProcess `user_id`, `full_name`, `phone`, `lead_status`, `lead_source`, `location_name`, `created_at`, `updated_at`, `task_status`, `allow_sms`, `allow_email`; trialClasses `user_id`, `full_name`, `date`, `class_name`, `status`, `check_in`, `source_name`, `lost_reason_name`; converted `lead_id`, `created_at`, `converted_at`, `lead_source`. Ignored: `email`, `city`, `address`, `age`, `gender`, `campaign`, task `description`.
 
 ## How to compute
-Ids are numbers in reports and strings elsewhere: cast to strings first. Today is the date of the run.
+Ids are numbers in reports and strings elsewhere: cast to strings first. Today is the date of the run. `task_status` and the flags follow [fields.md](fields.md).
 1. Open leads: every row of leadsInProcessReport. Age = days since `created_at`. Quiet = days since `updated_at`.
-2. Needs a first touch: status is the "new" stage (the first stage in the statuses list; in the sample, "New"), no open task (`task_status` empty and no open task with that `user_id`), and age is at least the first-touch threshold.
+2. Needs a first touch: status is the "new" stage (the first stage in the statuses list; in the sample, "New"), no current task, and age is at least the first-touch threshold. No current task means `task_status` is empty, `taskNone` or `taskPast`, and no open task with that `user_id` is in the tasks file. Mark `taskPast` rows "old or overdue task": they still need a call.
 3. Trial booked: status is the trial stage. If the lead has a row in trialClassesReport with a future `date`, show "trial on <date>". If it has none, show "trial status but no class found: check in Arbox", do not treat it as booked.
-4. Past trials (date before today): attended when `check_in` is `"1"`. Converted when `status` is the converted stage. Lost shows `lost_reason_name`. Conversion rate = converted / past trials, shown with the counts ("2 of 3"). Say "small numbers" when there are fewer than 10 trials.
+4. Past trials (date before today): attended when `check_in` is a yes flag (`"1"` in the sample). Converted when `status` is the converted stage. Lost shows `lost_reason_name`. Conversion rate = converted / past trials, shown with the counts ("2 of 3"). Say "small numbers" when there are fewer than 10 trials.
 5. By source: past trials and converted per `source_name`/`lead_source`. Show counts first, percentages second.
 6. Time to join: `converted_at` minus `created_at` per converted lead; show the median and the range, in days.
 7. Cards: open leads, need a first touch, trials coming up, trial conversion ("2 of 3").
@@ -39,12 +39,16 @@ jq -c -n --slurpfile open ~/Arbox/work/leads-and-trials/open.json \
   --slurpfile tasks ~/Arbox/work/leads-and-trials/tasks.json \
   --arg today "$(date +%Y-%m-%d)" --argjson first_touch_days 2 --argjson stale_days 7 '
 def days($s): (($today | strptime("%Y-%m-%d") | mktime) - ($s[0:10] | strptime("%Y-%m-%d") | mktime)) / 86400 | floor;
-([$tasks[0].data[] | select(.done == "0") | .user_id | tostring] | unique) as $open_task
+def flag: (if . == null then "" else tostring | ascii_downcase end) as $v
+  | if $v == "yes" or $v == "true" or $v == "1" then true
+    elif $v == "no" or $v == "false" or $v == "0" then false else null end;
+def current_task: (.task_status // "") as $t | $t != "" and $t != "taskNone" and $t != "taskPast";
+([$tasks[0].data[] | select((.done | flag) == false) | .user_id | tostring] | unique) as $open_task
 | ([$trials[0].data[] | .user_id | tostring]) as $with_trial
 | [ $open[0].data[] | (.user_id | tostring) as $id
     | {id: $id, name: .full_name, status: .lead_status, source: .lead_source, location: .location_name,
        age: days(.created_at), quiet: days(.updated_at),
-       has_task: (($id | IN($open_task[])) or ((.task_status // "") != "")), trial_row: ($id | IN($with_trial[]))}
+       has_task: (($id | IN($open_task[])) or current_task), old_task: (.task_status == "taskPast"), trial_row: ($id | IN($with_trial[]))}
     | select(.has_task | not) | select(.age >= $first_touch_days or .quiet >= $stale_days) ] | sort_by(-.age)'
 ```
 HTML rows: `@html "<tr><td>\(.name)</td>..."` escapes `& < > " '` in each value.
@@ -70,10 +74,10 @@ Nothing else is ever written: no messages, no lead status changes, no bookings.
 
 ## Spot-check
 Compare "open leads" with Arbox's leads screen filtered to open stages.
-Demo expected result (today 2026-10-14): 7 open leads, none with a task. 5 are New for 12 days (Oren Bar, Revital Gross, Ben Wolf, Keren Stein, Alma Tal); 2 are Trial booked: Lena Kaplan (trial 2026-10-16) and Mia Ross, who has no class in the trial report ("check in Arbox"). Past trials: 3 (הילה אזולאי and Gal Tzur attended and joined, Eyal Shamir lost, reason "price"): conversion 2 of 3, small numbers. By source: Instagram 1/1, Referral 1/1, Facebook 0/1. Time to join 7 and 8 days. Task creation: not available in demo.
+Demo expected result (today 2026-10-14): 7 open leads, none with a current task (6 `taskNone`; Alma Tal `taskPast`, shown as "old or overdue task"). 5 are New for 12 days (Oren Bar, Revital Gross, Ben Wolf, Keren Stein, Alma Tal); 2 are Trial booked: Lena Kaplan (trial 2026-10-16) and Mia Ross, who has no class in the trial report ("check in Arbox"). Past trials: 3 (הילה אזולאי and Gal Tzur attended and joined, Eyal Shamir lost, reason "price"): conversion 2 of 3, small numbers. By source: Instagram 1/1, Referral 1/1, Facebook 0/1. Time to join 7 and 8 days. Task creation: not available in demo.
 
 ## Pitfalls and LIVE CHECKs
-- LIVE CHECK: no report holds a "last contacted" date. `task_status` is the nearest signal and its values are undocumented; `updated_at` may be changed by Arbox itself. Never say "nobody contacted them", say "no task recorded".
+- LIVE CHECK: no report holds a "last contacted" date. `task_status` is the nearest signal. Live values seen: `taskNone` and `taskPast` ([fields.md](fields.md)); treating any non-empty value as a task hid every lead on a live account (6 open leads with no recent task, the oldest 177 days). What `taskPast` means exactly is unconfirmed. `updated_at` may be changed by Arbox itself. Never say "nobody contacted them", say "no task recorded".
 - LIVE CHECK: status and source names come from `/v3/statuses` and `/v3/sources`, whose item shape is untyped (the sample guesses `status_id`, `status_name`). Match on the names the report rows show.
 - LIVE CHECK: what `fromDate`/`toDate` filter on for the trial report.
 - The converted report's contact details can differ from the lead's. Join by id, never by email.

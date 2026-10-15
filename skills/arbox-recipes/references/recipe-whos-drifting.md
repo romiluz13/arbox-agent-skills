@@ -18,16 +18,16 @@
 2. Who has been absent:
    `~/.arbox/bin/arbox read /v3/reports/absenceReport fromDate=<today-30d> toDate=<today> group_by=user --all --out ~/Arbox/work/whos-drifting/absence.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
-   Dates are `YYYY-MM-DD`. Arbox requires `fromDate`, `toDate` and `group_by` here and refuses a range over 31 days (live-checked 2026-10-15). What the dates filter on is unconfirmed (LIVE CHECK).
+   Dates are `YYYY-MM-DD`. Arbox requires `fromDate`, `toDate` and `group_by` here and refuses a range over 31 days (live-checked 2026-10-15). The dates do not filter on `last_seen` (live, 2026-10-15), so the recipe applies its own quiet threshold.
 
 Fields used: regularsReport `user_id`, `full_name`, `phone`, `class_name`, `day_of_week`, `start_time`, `location_name`; absenceReport `phone`, `last_seen`, `future_registration`, `allow_sms`, `allow_email`. Ignored on purpose: `email`, `debt`, `memberships`, `membership_name`. Never shown: anything health related, `personal_id`, addresses.
 
 ## How to compute
-Join on `user_id` when the absence rows carry one; otherwise by phone (digits only). Names are not unique, so never join by name. If the join matches no regular at all (on one live account every absence row had an empty phone), stop: tell the owner the two reports can't be matched on their account, show the counts only, and don't guess.
+Read [fields.md](fields.md) first: the flag, booked-ahead and phone rules below come from it. The absence rows have no `user_id`, and their `id` is not a user id (live, 2026-10-15), so join by phone key (digits only, a leading `00` dropped, a leading `972` becomes `0`; live phones mix `05x` and `+972`). Names are not unique, so never join by name. If the join matches no regular at all (on one live account every absence row had an empty phone), stop: tell the owner the two reports can't be matched on their account, show the counts only, and don't guess.
 1. Keep one regular per person (`user_id`); keep their slots as "Reformer, Monday 18:00".
-2. Look the regular up in the absence report by phone. No match means they are not in the absence list: not drifting, do not guess.
-3. days quiet = today minus `last_seen`. Keep the person when days quiet is at least the threshold AND `future_registration` is empty (nothing booked ahead).
-4. Mark messaging as allowed only when `allow_sms` or `allow_email` is exactly `"yes"`. `"no"`, `"unknown"` and empty all mean do not message.
+2. Look the regular up in the absence report by phone key. No match means they are not in the absence list: not drifting, do not guess. Two absence rows with the same key, or two regulars with the same key (a parent and child, a couple): list each regular as "not matched, check", with no days quiet.
+3. days quiet = today minus `last_seen`. Keep the person when days quiet is at least the threshold AND nothing is booked ahead: `future_registration` is empty, null or `"no"` (live accounts send `"no"`). A date or `"yes"` means booked.
+4. Mark messaging as allowed only when `allow_sms` or `allow_email` is a yes flag. `"no"`, `"unknown"` and empty all mean do not message.
 5. Sort by days quiet, longest first. Cards: quiet regulars, total regulars, longest quiet, how many can be messaged.
 
 Under about 200 rows, do this in-model from the files. With jq (run `arbox doctor` to check it is installed):
@@ -35,20 +35,30 @@ Under about 200 rows, do this in-model from the files. With jq (run `arbox docto
 jq -c -n --slurpfile reg ~/Arbox/work/whos-drifting/regulars.json \
   --slurpfile abs ~/Arbox/work/whos-drifting/absence.json \
   --arg today "$(date +%Y-%m-%d)" --argjson n 21 '
-def digits: tostring | gsub("[^0-9]"; "");
+def flag: (if . == null then "" else tostring | ascii_downcase end) as $v
+  | if $v == "yes" or $v == "true" or $v == "1" then true
+    elif $v == "no" or $v == "false" or $v == "0" then false else null end;
+def booked_ahead: (if . == null then "" else tostring end) as $v | ($v | flag) as $f
+  | if $v == "" then false elif $f == null then true else $f end;
+def phone_key: if . == null then "" else tostring | gsub("[^0-9]"; "") | sub("^00"; "") | if startswith("972") then .[3:] | (if startswith("0") then . else "0" + . end) else . end end;
 def day($s): $s[0:10] | strptime("%Y-%m-%d") | mktime;
 def esc: tostring | @html;
-($abs[0].data | map({key: (.phone | digits), value: .}) | from_entries) as $A
+($abs[0].data | map(select((.phone | phone_key) != "")) | group_by(.phone | phone_key)
+  | map({key: (.[0].phone | phone_key), value: (if length == 1 then .[0] else {shared: true} end)}) | from_entries) as $A
+| ($reg[0].data | group_by(.user_id) | map(.[0].phone | phone_key) | group_by(.) | map(select(length > 1) | .[0])) as $shared_reg
 | [ $reg[0].data | group_by(.user_id)[]
     | {user_id: .[0].user_id, name: .[0].full_name, phone: .[0].phone,
        slot: (map("\(.class_name), \(.day_of_week) \(.start_time)") | join("; "))} as $r
-    | ($A[$r.phone | digits]) as $a
+    | ($A[$r.phone | phone_key]) as $a
     | select($a != null)
-    | (if $a.last_seen == null then null else ((day($today) - day($a.last_seen)) / 86400 | floor) end) as $d
-    | select($d == null or $d >= $n)
-    | select(($a.future_registration // "") == "")
-    | $r + {last_seen: ($a.last_seen // "never seen" | tostring | .[0:10]), days: $d,
-            can_sms: ($a.allow_sms == "yes"), can_email: ($a.allow_email == "yes")}
+    | if $a.shared or ($r.phone | phone_key | IN($shared_reg[])) then $r + {last_seen: null, days: null, note: "not matched, check"}
+      else
+        (if $a.last_seen == null then null else ((day($today) - day($a.last_seen)) / 86400 | floor) end) as $d
+        | select($d == null or $d >= $n)
+        | select($a.future_registration | booked_ahead | not)
+        | $r + {last_seen: ($a.last_seen // "never seen" | tostring | .[0:10]), days: $d,
+                can_sms: (($a.allow_sms | flag) == true), can_email: (($a.allow_email | flag) == true)}
+      end
   ] | sort_by(-(.days // 100000))'
 ```
 To build table rows, pipe each object through the HTML-escape format: `.[] | @html "<tr><td>\(.name)</td><td>\(.slot)</td><td class=\"num\">\(.days)</td></tr>"`. The @html format escapes `& < > " '` in the interpolated values only.
@@ -66,14 +76,14 @@ To build table rows, pipe each object through the HTML-escape format: `.[] | @ht
 
 ## Spot-check
 Pick the person with the most days quiet. In Arbox open their member card and check the last visit date equals `last_seen`.
-Demo expected result (today 2026-10-14, threshold 21 days): 6 regulars, 1 quiet: Shira Katz, Reformer Monday 18:00, last seen 2026-09-14, 30 days, can be messaged by SMS and email. Not listed: Yael Shapira (has a booking on 2026-10-16), and the four regulars who are not in the absence list. The absence list also holds Tomer Golan (45 days), Dana Rosen (4 days) and איתי גולן (11 days). None of the three is a regular, so all three are correctly left out. Cards: 1 quiet, 6 regulars, 30 days longest, 1 can be messaged.
+Demo expected result (today 2026-10-14, threshold 21 days): 6 regulars, 1 quiet: Shira Katz, Reformer Monday 18:00, last seen 2026-09-14, 30 days, can be messaged by SMS and email. Her absence row has a `+972` phone and `future_registration` `"no"`, as live rows do; she must still match. Not listed: Yael Shapira (has a booking on 2026-10-16), and the four regulars who are not in the absence list. The absence list also holds Tomer Golan (45 days), Dana Rosen (4 days) and איתי גולן (11 days). None of the three is a regular, so all three are correctly left out. Cards: 1 quiet, 6 regulars, 30 days longest, 1 can be messaged.
 
 ## Pitfalls and LIVE CHECKs
 - LIVE CHECK: `last_seen` meaning (attendance vs booking vs login). If a person who clearly came last week shows as quiet, stop and tell the owner.
 - LIVE CHECK: does the absence report list everyone, or only people absent longer than some window? A regular missing from it is treated as not quiet; say that in the footer.
-- LIVE CHECK: phone formats match between the two reports. If fewer than half the regulars match, say the join is unreliable and show counts only.
+- Phone formats differ between reports (`05x` and `+972` on one live account): always compare phone keys. If fewer than half the regulars match, say the join is unreliable and show counts only.
 - `last_seen` can be null (never seen): list the person as "never seen" with days quiet blank, not as 0.
-- Consent fields are strings; `"yes"` is the only yes.
+- Consent fields are flags ([fields.md](fields.md)); unknown is never yes.
 - `user_id` is a number in reports and a string elsewhere; compare after casting.
 
 ## Privacy

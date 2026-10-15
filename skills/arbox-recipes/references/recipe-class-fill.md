@@ -19,13 +19,13 @@
 2. Optional, only for "did they actually come": `classesSummaryReport` for the past dates (has check-in numbers).
    `~/.arbox/bin/arbox read /v3/reports/classesSummaryReport fromDate=<today-14d> toDate=<today> --all --out ~/Arbox/work/class-fill/summary.json`
    Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Get%20Reports
-   It has one row per person per class, so it can be large; use only counts. Never request or show `salary`.
+   On a live account it had one row per class, with `registration_count`; use only counts. It carries `salary` per class (live, 2026-10-15): never show it. It also lists cancelled classes that the schedule leaves out, and it has no `cancelled_status` field, so its class count can be higher than the schedule's.
 
 Fields used: `schedule_id`, `date`, `start_time`, `session_name`, `location_name`, `staff_member` (a name), `max_participants`, `registration_count`, `waiting_list_count`, and `cancelled_status` when present (the spec lists it, but one live account didn't return it). Ignored: `cancelled_by_name`, `space_name`, `color`, custom fields. No member names are involved at all.
 
 ## How to compute
 Counts may come as numbers or strings (live: numbers; spec: strings): cast to numbers either way. A missing or empty `max_participants` means the capacity is unknown: leave that class out of fill percentages and count it as "no capacity set".
-1. Drop cancelled classes: rows whose `cancelled_status` is present and not 0. If no row has the field, say "cancelled classes can't be told apart in this data" in the footer.
+1. Drop cancelled classes: rows whose `cancelled_status` is present and not 0. If no row has the field, say "cancelled classes are not marked in this data; on one test account Arbox left them out of the schedule, not confirmed for yours" in the footer.
 2. Fill % = `registration_count` / `max_participants` x 100, rounded.
 3. Nearly empty: fill below the low line. Full: fill at or above the high line. Waiting: `waiting_list_count` above 0.
 4. Group by class name, location, weekday and time slot ("Reformer, Tuesday 18:00, Tel Aviv"). For each slot give the average fill and how many times it ran. A slot that is nearly empty on most of its runs is a real pattern; a single empty class is not. Say "N of M runs".
@@ -68,7 +68,7 @@ Demo expected result (14 days from 2026-10-14, thresholds 30 and 90): 72 classes
 
 ## Pitfalls and LIVE CHECKs
 - LIVE CHECK: whether `registration_count` includes standby or cancelled bookings, and what `max_participants` holds for unlimited classes (0, null or a large number). Unlimited classes must not show as 0% or 100%.
-- LIVE CHECK: `cancelled_status` was absent on one live account; whether `cancelled=1` / `transparent=1` filters change which classes come back.
+- `cancelled_status` was absent on one live account, and the schedule there already left cancelled classes out (they showed only in `classesSummaryReport`). LIVE CHECK: whether `cancelled=1` / `transparent=1` brings them back.
 - Without `registration_count=1` and `waiting_list_count=1` the fields are absent. If every count is missing, say the flags were not applied; do not print 0.
 - Past classes: the count is bookings, not attendance. Say "booked" unless you used `classesSummaryReport` check-ins.
 - 4 weeks of a busy timetable can pass 500 rows: if the executor prints INCOMPLETE, show the banner and narrow the window or the branch.

@@ -160,3 +160,28 @@ Recipe runs end to end:
 - **class-fill**: report rebuilt at `~/Arbox/reports/class-fill-2026-10-15.html` with the footer note "Cancelled classes can't be told apart in this data". The recipe's jq filter runs on the live file and keeps all 21 classes.
 - **whos-drifting**: the join matched 0 of 13 absence rows against 0 regulars (phone empty on all 13), so the recipe's stop rule applies. Counts only, no report. The recipe's jq on the 0-byte regulars file fails with "Cannot iterate over null"; on the plain envelope it runs and shows 0 joined.
 
+
+## Field report: all ten recipes on a live test account (2026-10-15)
+
+A tester ran every recipe of v0.9.0, reads only, on a live test account (2 locations, about 65 users, a year of classes, sales and debts). All ten reports rendered; three gave wrong numbers when run as written. No member data was shared. What it answered, and where the repo now records it:
+
+| Finding | Live answer | Fixed in |
+|---|---|---|
+| salesReport `action` / `sub_action` | Always filled. `action`: `New purchase`, `Renew`, `Purchase`, `Lead converted purchase`. `sub_action`: `Separated Payment`, `Debt`, `Free`, `Purchase Occasion` (March, July, August, September 2026). The "empty action" filter gave revenue 0 and new buyers 0 | `fields.md`; sales-snapshot, first-30-days; reports.md |
+| Flags | `"yes"` / `"no"` on `has_waiver`, `cancelled`, `has_another_*`, `future_registration` (`"no"`, not empty). waivers-and-forms put everyone in Unknown; whos-drifting and no-shows excluded everyone | `fields.md` flag rule; waivers-and-forms, whos-drifting, no-shows, renewal-watch, first-30-days; quirks.md, reports.md |
+| `task_status` | Enum: `taskNone`, `taskPast`. leads-and-trials showed 0 leads to call; 6 open leads had no recent task, the oldest 177 days | `fields.md`; leads-and-trials |
+| absenceReport | No `user_id`; `id` matches no user. Phones mix `05x` and `+972`. The dates do not filter `last_seen` | phone key in `fields.md`; whos-drifting, no-shows, first-30-days; reports.md |
+| signedFormsReport | `form_id` is the signature record id. Types `HASWAIVER`, `MEDICALCERT` | waivers-and-forms; reports.md, users.md |
+| Membership reports | Refuse windows over 31 days; filter on `end_date` | renewal-watch; reports.md |
+| debtReport | `debt` is a number; `status` `Incompatible Status`, `inactive` | payments-to-chase; reports.md |
+| salesReport extra fields | Returns `medical_cert`, `has_waiver`, `personal_id` | reports.md (strip them) |
+| classesSummaryReport | `salary` per class; lists cancelled classes the schedule omits; no `cancelled_status` | class-fill; reports.md |
+| Locations | `location_id` / `location_name` | already documented (other.md); no change |
+| Required dates | `expiredMembershipsReport`, `classesSummaryReport`, `allLeadsReport`, `lostLeadsReport` return 400 without `fromDate`/`toDate` | reports.md |
+| Rate limit | One HTTP 429 "concurrent requests not allowed" with two parallel jobs on one key; a retry worked | helper retries reads twice (1 s, 2 s); writes never retry; arbox-api SKILL.md, quirks.md |
+| Helper UX | `read "/v3/x?fromDate=..."` was refused | helper takes `?a=b&c=d` on reads; `%`-codes refused with the corrected command |
+| Recipe idea | Coach cost per attendee and break-even headcount from `classesSummaryReport` `salary` and `registration_count` | not built; opt-in idea (staff pay is private) |
+
+Regression check: the demo fixtures now carry these live shapes, and `tests/recipes.sh` runs the recipes' jq on them against each spot-check. Before the recipe fixes it failed on sales-snapshot (0 sales), whos-drifting (nobody) and leads-and-trials (0 leads), the same wrong numbers the field run saw.
+
+Still LIVE: the exact meaning of `taskPast`; what refunds look like in salesReport; whether `Purchase` is ever a first purchase.

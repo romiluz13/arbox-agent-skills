@@ -1,6 +1,6 @@
 {
   "name": "arbox",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Use Claude Code with your Arbox business: discover what to build, connect safely to the Arbox API, and run ready-made recipes (renewals, who's drifting, payments to chase, leads and trials, sales, class fill, no-shows, first 30 days, waivers, the Monday page). Community project, not affiliated with Arbox.",
   "author": { "name": "Rom Iluz", "url": "https://github.com/romiluz13" },
   "homepage": "https://github.com/romiluz13/arbox-agent-skills",

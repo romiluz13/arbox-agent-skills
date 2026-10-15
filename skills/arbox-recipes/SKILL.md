@@ -4,7 +4,7 @@ description: "Turns an Arbox business owner's plain question into a correct, goo
 license: MIT
 metadata:
   project: arbox-agent-skills
-  note: community project, not affiliated with Arbox. Recipes are not yet verified against a live Arbox account.
+  note: community project, not affiliated with Arbox. Recipes have run on one live test account, not yet on a busy studio.
 ---
 
 # Arbox recipes: ask a question, get a report
@@ -44,7 +44,7 @@ Other files: when the owner says "run my X" or "same as last time", open [routin
 
 ## Verify first
 
-No live Arbox account has been used to test these recipes yet, so each one lists what it assumes (LIVE CHECK). The first time a recipe runs on a real account, ask the owner to check the recipe's spot-check number in Arbox before trusting the rest, and keep "Not yet verified against Arbox" in the report footer until they say it matches. If the numbers disagree, stop, say what differs, and read the recipe's LIVE CHECK list instead of arguing. Demo data is not a verification.
+The recipes have run on one live test account, not yet on a busy studio, so each one lists what it still assumes (LIVE CHECK). [fields.md](references/fields.md) holds the field rules every recipe shares (flags, phones, sales rows, task status). The first time a recipe runs on a real account, ask the owner to check the recipe's spot-check number in Arbox before trusting the rest, and keep "Not yet verified against Arbox" in the report footer until they say it matches. If the numbers disagree, stop, say what differs, and read the recipe's LIVE CHECK list instead of arguing. Demo data is not a verification.
 
 ## Talking to the owner
 

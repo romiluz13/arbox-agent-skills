@@ -430,11 +430,11 @@ Attach a signed commitment document to a membership.
 **Quirks:**
 
 - Both ids are `integer` here.
-- `GET /v3/digitalForms` also returns a `form_id`. The description says this one comes from the **signed forms report**; whether the two ids are the same kind is unknown.
+- `GET /v3/digitalForms` also returns a `form_id`. The description says this one comes from the **signed forms report**, whose `form_id` is the signature record's id, not the form template's (field report, 2026-10-15). So the two ids are different kinds.
 
 **LIVE CHECK:**
 
-- Which `form_id` is accepted (form template vs signed instance).
+- That the signed-forms `form_id` (a signature record id) is the one accepted here, as the description says.
 - Reversibility (no detach operation exists).
 
 Docs: https://arboxserver.arboxapp.com/docs/api#/operations/Attach%20commitment%20document%20to%20membership

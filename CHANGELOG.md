@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.1 (2026-10-15)
+
+Fixes from a field run of all ten recipes on a live test account (`docs/plan/live-check-results.md`).
+
+- **sales-snapshot, first-30-days:** sales rows are classified by the live `action` values (`New purchase`, `Renew`, `Purchase`, `Lead converted purchase`). The old "empty action" rule reported revenue 0 and no new buyers. `Free` items are counted apart from sales.
+- **waivers-and-forms, whos-drifting, no-shows, renewal-watch:** flags are read with one shared rule (`"yes"`/`"no"`, `"true"`/`"false"`, `"1"`/`"0"`; anything else is unknown). `future_registration` `"no"` now means nothing booked. Signed forms are matched by type (`HASWAIVER`, `MEDICALCERT`), not by `form_id`.
+- **leads-and-trials:** `task_status` `taskNone` and `taskPast` count as no current task, so leads waiting for a call show again.
+- **Phones** are compared by key (digits, leading `972` to `0`), so `05x` and `+972` rows match.
+- New `arbox-recipes/references/fields.md`: the field rules every recipe shares.
+- **Helper:** reads retry twice on HTTP 429 (seen when two calls with one key overlapped); writes never retry. `read /v3/reports/<name>?a=b&c=d` is accepted when the values carry no URL codes (`%`, `+`, `#`).
+- References: required dates, caps and field values from the live run (reports, quirks, users).
+- Demo data uses the live value shapes, and `tests/recipes.sh` checks the recipes' jq against each spot-check.
+
 ## 0.9.0 (2026-10-15)
 
 First release candidate.

@@ -103,11 +103,15 @@ What the server did with them: each name passes the name check. Without paramete
 | `success` | string enum `"0"` / `"1"` | Not described. Probably irrelevant to reports (it appears to be a shared parameter) |
 | `page`, `limit`, `sort` | integer, integer (max 500), `asc`/`desc` | Pagination. Response has no total or next-page field |
 
-**Required parameters:** the path `reportName`, plus whatever the entry's Params line says. Several reports need dates (observed 2026-10-15: `absenceReport`, `bookingsReport`, `bookingStatisticsReport`, `expiringMembershipsReport`, `expiringSessionsReport`, `hugimRevenueReport`, `hugimRevenueByReceiptReport`, `inactiveMembersReport`, `convertedLeadReport`, `salesReport`, `trialClassesReport`). `signedFormsReport` needs `toDate`. The spec does not say which reports need what.
+**Required parameters:** the path `reportName`, plus whatever the entry's Params line says. Several reports need dates (observed 2026-10-15: `absenceReport`, `allLeadsReport`, `bookingsReport`, `bookingStatisticsReport`, `classesSummaryReport`, `expiredMembershipsReport`, `expiringMembershipsReport`, `expiringSessionsReport`, `hugimRevenueReport`, `hugimRevenueByReceiptReport`, `inactiveMembersReport`, `convertedLeadReport`, `lostLeadsReport`, `salesReport`, `trialClassesReport`; without them, HTTP 400). `signedFormsReport` needs `toDate`. The spec does not say which reports need what.
 
-**Date-range caps:** the spec states the 31-day cap on four finance GETs only (invoices, receipts, cashFlow, sales; see `finance.md`). On 2026-10-15 the reports also refused windows over 31 days, with the same message ("The date range should not exceed 31 days."): `birthdayReport` (a full year), `salesReport` (60 days), `lateCancellationReport` (60 days), `trialClassesReport` (44 days), `absenceReport` (90 days). Keep every report window at 31 days or less. Reports not listed here were not tested beyond 31 days. Live results: `docs/plan/live-check-results.md`.
+**Date-range caps:** the spec states the 31-day cap on four finance GETs only (invoices, receipts, cashFlow, sales; see `finance.md`). On 2026-10-15 the reports also refused windows over 31 days, with the same message ("The date range should not exceed 31 days."): `birthdayReport` (a full year), `salesReport` (60 days), `lateCancellationReport` (60 days), `trialClassesReport` (44 days), `absenceReport` (90 days); the membership reports too (field report, 2026-10-15). Keep every report window at 31 days or less. Reports not listed here were not tested beyond 31 days. Live results: `docs/plan/live-check-results.md`.
 
 **Responses:** 200, 404, 422. No error schema. `data` is always an array, even for single-object cases.
+
+**Flag values:** string flags come back as `"yes"`/`"no"` on a live account (`has_waiver`, `cancelled`, `has_another_plan`, `has_another_session`, `future_registration`), not `"true"`/`"false"` or `"0"`/`"1"` (field report, 2026-10-15). Recipes read them with one rule: `skills/arbox-recipes/references/fields.md`.
+
+**One call at a time:** two parallel calls with the same key got HTTP 429 "concurrent requests not allowed" (field report, 2026-10-15). The helper retries a read after a short wait; run calls one after another.
 
 **Flags used in the field lists**
 - **P**: personal data. Names, contact details, age, gender, birthday, address, national ID (`personal_id`).
@@ -141,17 +145,17 @@ What the server did with them: each name passes the name check. Without paramete
 ## expiringMembershipsReport
 
 - **Schema:** `ExpiringMembershipsReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31-day windows accepted; longer windows not tested.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`, which filter on `end_date`. Date cap: 31 days (field report, 2026-10-15).
 - **Key fields** (15 of 24): `full_name`, `phone`, `email`, `membership_type_name`, `membership_user_id`, `start_date`, `end_date`, `price`, `cancelled`, `cancel_reason`, `has_another_session`, `has_another_plan`, `group_leader`, `location_name`, `lead_owner`.
 - **Flags:** P, F.
 - **Owner question:** "Whose time-based membership ends soon, and has it already been cancelled?"
 - **Business types:** fitness, Pilates, yoga, clinic (monthly plans), beauty (monthly plans).
-- **Quirks:** `has_another_plan` / `has_another_session` tell you whether a renewal is already in place. Use them before drafting a renewal message.
+- **Quirks:** `has_another_plan` / `has_another_session` tell you whether a renewal is already in place. Use them before drafting a renewal message. They and `cancelled` are `"yes"`/`"no"` (field report, 2026-10-15).
 
 ## expiredMembershipsReport
 
 - **Schema:** `ExpiredMembershipsReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate` (400 without them), which filter on `end_date`. Date cap: 31 days (field report, 2026-10-15).
 - **Key fields** (15 of 28): `full_name`, `phone`, `email`, `membership_type_name`, `membership_user_id`, `start_date`, `end_date`, `ending_reason`, `client_status`, `price`, `active_charges`, `ltv`, `lead_owner`, `location_name`, `task_status`.
 - **Flags:** P, F (`ltv`, `active_charges`).
 - **Owner question:** "Which memberships ended, why did they end, and did they owe money?"
@@ -271,7 +275,7 @@ What the server did with them: each name passes the name check. Without paramete
 ## allLeadsReport
 
 - **Schema:** `AllLeadsReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate` (400 without them) (field report, 2026-10-15). Date cap: not tested beyond 31 days.
 - **Key fields** (15 of 21): `user_id`, `full_name`, `email`, `phone`, `status`, `lead_source`, `created_at`, `updated_at`, `trial_class`, `lead_owner`, `campaign`, `task_status`, `location_name`, `allow_sms`, `lost_reason_name`.
 - **Flags:** P.
 - **Owner question:** "Every lead we have, its status and where it came from."
@@ -281,7 +285,7 @@ What the server did with them: each name passes the name check. Without paramete
 ## lostLeadsReport
 
 - **Schema:** `LostLeadsReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate` (400 without them) (field report, 2026-10-15). Date cap: not tested beyond 31 days.
 - **Key fields** (15 of 18): `lead_id`, `full_name`, `email`, `phone`, `created_at`, `lost_date`, `lost_reason_name`, `source_name`, `campaign`, `lead_owner`, `task_status`, `location_name`, `allow_sms`, `allow_email`, `custom_field_value`.
 - **Flags:** P.
 - **Owner question:** "Which leads did we lose, when, and why?"
@@ -386,7 +390,7 @@ What the server did with them: each name passes the name check. Without paramete
 - **Flags:** P. **Possibly H** if `type` is a health declaration. Form content is not in this report.
 - **Owner question:** "Who signed which form (waiver or health declaration), and when does it expire?"
 - **Business types:** all, especially fitness, clinic, beauty (treatments).
-- **Quirks:** `type` is a free string. Its values are UNKNOWN.
+- **Quirks:** `type` values seen: `HASWAIVER` (waiver) and `MEDICALCERT` (field report, 2026-10-15). That `MEDICALCERT` is the health declaration rather than a doctor's certificate is not documented (LIVE CHECK). `form_id` is the signature record's id, not the `GET /v3/digitalForms` `form_id`, so form names cannot be joined.
 
 ## debtReport
 
@@ -396,6 +400,7 @@ What the server did with them: each name passes the name check. Without paramete
 - **Flags:** P, F.
 - **Owner question:** "Who owes money, for what, and how much?"
 - **Business types:** all.
+- **Quirks:** `debt` and `price` are numbers, not strings. `status` values seen: `Incompatible Status`, `inactive`; meaning not documented. `task_status` seen: `taskNone` (field report, 2026-10-15).
 
 ## transactionsReport
 
@@ -411,11 +416,11 @@ What the server did with them: each name passes the name check. Without paramete
 
 - **Schema:** `SalesReportResource` (the one in the report union, **not** `App.Http.Resources.PublicApiV3.Invoice.SalesReportResource`). INFERRED (exact).
 - **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate`. Date cap: 31 days (observed 2026-10-15: a 60-day window returned 400).
-- **Key fields** (15 of 39): `date`, `full_name`, `item_name`, `item_type`, `price`, `discount`, `paid`, `debt`, `status`, `action`, `sub_action`, `sale_person_name`, `lead_source`, `campaign_name`, `promo_code`. Also present: `medical_cert`, `has_waiver`, `has_image`, `personal_id`, `membership_type_internal_name`.
+- **Key fields** (15 of 39): `date`, `full_name`, `item_name`, `item_type`, `price`, `discount`, `paid`, `debt`, `status`, `action`, `sub_action`, `sale_person_name`, `lead_source`, `campaign_name`, `promo_code`. Also present, and returned live: `medical_cert`, `has_waiver`, `personal_id` (strip them before anything is written), plus `has_image`, `membership_type_internal_name`.
 - **Flags:** P, F, **H** (`medical_cert`, `has_waiver` present in the schema, not in the key list).
 - **Owner question:** "What did I sell this period, at what price, and how much was paid?"
 - **Business types:** all.
-- **Quirks:** name collision noted above. `action`/`sub_action` are free strings. The 31-day cap in the spec belongs to `/v3/finance/reports/sales`, not to this report; do not assume it applies here.
+- **Quirks:** name collision noted above. `action` and `sub_action` are always filled on a live account (field report, 2026-10-15): `action` `New purchase`, `Renew`, `Purchase`, `Lead converted purchase`; `sub_action` `Separated Payment`, `Debt`, `Free`, `Purchase Occasion`. A filter on empty `action` matches nothing. How refunds look is not known. The spec states its 31-day cap on `/v3/finance/reports/sales`, but this report refuses windows over 31 days too.
 
 ## bookingStatisticsReport
 
@@ -429,12 +434,12 @@ What the server did with them: each name passes the name check. Without paramete
 ## classesSummaryReport
 
 - **Schema:** `ClassesSummaryReportResource`. INFERRED (exact).
-- **Params:** shared set (see *Shared facts*). None required. Date cap: none documented.
+- **Params:** shared set (see *Shared facts*). Required: `fromDate`, `toDate` (400 without them) (field report, 2026-10-15). Date cap: not tested beyond 31 days.
 - **Key fields** (15 of 33): `schedule_id`, `date`, `day_of_week`, `start_time`, `end_time`, `class_name`, `staff_member`, `space`, `status`, `registration_count`, `registration_percentage`, `check_in`, `check_in_percentage`, `standby_members`, `late_cancellation`.
 - **Flags:** **S** (`salary` is in the schema; exclude by default). P is present (`full_name`, `phone`) but not needed for a class summary.
 - **Owner question:** "How full was each class, and how many people actually came?"
 - **Business types:** fitness, Pilates, yoga, CrossFit, education (courses), activities (group sessions).
-- **Quirks:** one row per member per class, so counts need grouping. `registration_percentage` and `check_in_percentage` are strings or numbers (unclear).
+- **Quirks:** on a live account, one row per class with `registration_count` and `salary` (staff pay per class, flag S) (field report, 2026-10-15). It lists cancelled classes that `GET /v3/schedule` leaves out, and has no `cancelled_status` field. `registration_percentage` and `check_in_percentage` are strings or numbers (unclear).
 
 ## cancelledSessionsReport
 
@@ -523,7 +528,7 @@ What the server did with them: each name passes the name check. Without paramete
 - **Flags:** P, F (`debt`).
 - **Owner question:** "Who hasn't come in for a while, and do they have a future booking?"
 - **Business types:** all.
-- **Quirks:** `memberships` is nested and untyped inside the row.
+- **Quirks:** `memberships` is nested and untyped inside the row. No `user_id`; the row's `id` matches no user id, so join by phone, and phones mix `05x` and `+972` formats (normalize to digits, drop a leading `00`, leading `972` to `0`). The dates do not filter on `last_seen`. `future_registration` is `"no"` when nothing is booked, not empty (field report, 2026-10-15).
 
 ## entranceReport
 

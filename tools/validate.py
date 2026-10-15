@@ -2,7 +2,8 @@
 """Validate the skills tree. Stdlib only. Exit 1 on any failure.
 
 Checks: standard frontmatter, name == dir, Documentation sections,
-65/65 operation deep links, 47/47 reports, relative links, size limits.
+65/65 operation deep links, 47/47 reports, relative links, size limits,
+recipe jq helpers copied word for word from fields.md.
 """
 import json
 import re
@@ -160,6 +161,33 @@ def check_manifests():
             fail(f"{f}: {e}")
 
 
+def jq_defs(text):
+    """name -> whitespace-normalized text of each top-level jq `def` in the fenced blocks."""
+    defs = {}
+    for block in re.findall(r"```[a-z]*\n(.*?)```", text, re.S):
+        lines = block.split("\n")
+        for i, line in enumerate(lines):
+            m = re.match(r"def ([a-z_]+)", line)
+            if m:
+                body = [line]
+                for more in lines[i + 1:]:
+                    if body[-1].rstrip().endswith(";"):
+                        break
+                    body.append(more)
+                defs[m.group(1)] = " ".join(" ".join(body).split())
+    return defs
+
+
+def check_recipe_field_rules():
+    """A recipe that defines a jq helper from fields.md must copy it word for word."""
+    refs = ROOT / "skills/arbox-recipes/references"
+    shared = jq_defs((refs / "fields.md").read_text(encoding="utf-8"))
+    for f in sorted(refs.glob("recipe-*.md")):
+        for name, body in jq_defs(f.read_text(encoding="utf-8")).items():
+            if name in shared and body != shared[name]:
+                fail(f"{f.relative_to(ROOT)}: jq def {name} differs from fields.md")
+
+
 def main():
     check_manifests()
     check_versions()
@@ -167,6 +195,7 @@ def main():
     check_operations()
     check_cited_operations()
     check_links()
+    check_recipe_field_rules()
     if errors:
         print("\n".join(f"FAIL {e}" for e in errors))
         print(f"{len(errors)} problem(s)")

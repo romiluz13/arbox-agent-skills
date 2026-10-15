@@ -3,7 +3,7 @@
 # POSIX sh + curl only. The API key is read from the profiles file and handed
 # to curl on stdin; it never appears in argv or in anything this script prints.
 
-ARBOX_EXECUTOR_VERSION="0.9.0"
+ARBOX_EXECUTOR_VERSION="0.9.1"
 
 # Everything this script creates (keys file, logs, --out files, temp files) is owner-only.
 umask 077
@@ -318,16 +318,26 @@ api_call() {
   shift 2
   make_tmp
   BODY_FILE="$TMPD/body"
-  curl_rc=0
-  HTTP_STATUS=$(printf 'header = "api-key: %s"\n' "$KEY" |
-    curl --config - -sS --connect-timeout 10 --max-time 60 -X "$method" \
-      -o "$BODY_FILE" -w '%{http_code}' "$@" "$BASE$apath$QUERY_STRING") || curl_rc=$?
-  if [ "$curl_rc" -ne 0 ]; then
-    log_activity 000 -
-    die 4 "Could not reach Arbox (curl error $curl_rc). Check the internet connection and try again."
-  fi
-  [ -f "$BODY_FILE" ] || : >"$BODY_FILE"
-  scrub_file "$BODY_FILE"
+  attempt=1
+  while :; do
+    curl_rc=0
+    HTTP_STATUS=$(printf 'header = "api-key: %s"\n' "$KEY" |
+      curl --config - -sS --connect-timeout 10 --max-time 60 -X "$method" \
+        -o "$BODY_FILE" -w '%{http_code}' "$@" "$BASE$apath$QUERY_STRING") || curl_rc=$?
+    if [ "$curl_rc" -ne 0 ]; then
+      log_activity 000 -
+      die 4 "Could not reach Arbox (curl error $curl_rc). Check the internet connection and try again."
+    fi
+    [ -f "$BODY_FILE" ] || : >"$BODY_FILE"
+    scrub_file "$BODY_FILE"
+    # Arbox answers 429 while another call with the same key is running. Reads
+    # wait and try again; writes never repeat (a duplicate cannot be undone).
+    [ "$HTTP_STATUS" = 429 ] && [ "$method" = GET ] && [ "$attempt" -lt 3 ] || break
+    log_activity 429 -
+    printf 'Arbox is busy with another request (HTTP 429); trying again in %s s.\n' "$attempt" >&2
+    sleep "$attempt"
+    attempt=$((attempt + 1))
+  done
   log_rows="-"
   if [ "$method" = GET ] && command -v jq >/dev/null 2>&1; then
     log_rows=$(jq -e '.data | length' "$BODY_FILE" 2>/dev/null) || log_rows="-"
@@ -337,6 +347,7 @@ api_call() {
     2??) return 0 ;;
     404) printf 'Arbox could not find that (HTTP 404). The address or an id in it may be wrong, or the record may be gone.\n' >&2 ;;
     401 | 403) printf "Arbox rejected the key for profile '%s' (HTTP %s). Check it in Arbox -> Settings, then enter it again. %s\n" "$PROFILE" "$HTTP_STATUS" "$(setup_hint "$PROFILE")" >&2 ;;
+    429) printf 'Arbox refused while another request was running (HTTP 429). Run calls one after another, then try again.\n' >&2 ;;
     5??) printf 'Arbox had a problem on its side (HTTP %s). Try again in a minute.\n' "$HTTP_STATUS" >&2 ;;
     *) printf 'Arbox returned HTTP %s.\n' "$HTTP_STATUS" >&2 ;;
   esac
@@ -527,6 +538,26 @@ cmd_read() {
     fi
     shift
   done
+  case $path in
+    *\?*)
+      # Agents often type /v3/x?a=b&c=d; take it as the filters a=b c=d.
+      rq=${path#*\?}
+      path=${path%%\?*}
+      qf=""
+      eg=""
+      while [ -n "$rq" ]; do
+        kv=${rq%%&*}
+        case $rq in *\&*) rq=${rq#*&} ;; *) rq="" ;; esac
+        [ -n "$kv" ] || continue
+        qf="$qf$kv
+"
+        eg="$eg ${kv%%=*}=..."
+      done
+      # %, + and # mean something else in a URL; ask for the plain form instead of guessing.
+      case $qf in *[%+#]*) die 2 "Put filters after the path as name=value in plain text (no %, + or # URL codes). For example: arbox read $path$eg" ;; esac
+      filters="$qf$filters"
+      ;;
+  esac
   LOG_PATH=${path:--}
   set_qkeys "$filters"
   [ -z "$demo" ] || LOG_VERB=demo

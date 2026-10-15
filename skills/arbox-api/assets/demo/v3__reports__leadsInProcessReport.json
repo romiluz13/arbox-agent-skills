@@ -21,7 +21,7 @@
       "location_name": "Studio Demo Tel Aviv",
       "created_at": "2026-10-02 10:00:00",
       "updated_at": "2026-10-10 10:00:00",
-      "task_status": null,
+      "task_status": "taskNone",
       "allow_sms": "yes",
       "allow_email": "yes",
       "custom_field_value": []
@@ -46,7 +46,7 @@
       "location_name": "Studio Demo Haifa",
       "created_at": "2026-10-02 10:00:00",
       "updated_at": "2026-10-10 10:00:00",
-      "task_status": null,
+      "task_status": "taskNone",
       "allow_sms": "yes",
       "allow_email": "yes",
       "custom_field_value": []
@@ -71,7 +71,7 @@
       "location_name": "Studio Demo Tel Aviv",
       "created_at": "2026-10-02 10:00:00",
       "updated_at": "2026-10-10 10:00:00",
-      "task_status": null,
+      "task_status": "taskNone",
       "allow_sms": "yes",
       "allow_email": "yes",
       "custom_field_value": []
@@ -96,7 +96,7 @@
       "location_name": "Studio Demo Tel Aviv",
       "created_at": "2026-10-02 10:00:00",
       "updated_at": "2026-10-10 10:00:00",
-      "task_status": null,
+      "task_status": "taskNone",
       "allow_sms": "yes",
       "allow_email": "yes",
       "custom_field_value": []
@@ -121,7 +121,7 @@
       "location_name": "Studio Demo Haifa",
       "created_at": "2026-10-02 10:00:00",
       "updated_at": "2026-10-10 10:00:00",
-      "task_status": null,
+      "task_status": "taskNone",
       "allow_sms": "yes",
       "allow_email": "yes",
       "custom_field_value": []
@@ -146,7 +146,7 @@
       "location_name": "Studio Demo Tel Aviv",
       "created_at": "2026-10-02 10:00:00",
       "updated_at": "2026-10-10 10:00:00",
-      "task_status": null,
+      "task_status": "taskNone",
       "allow_sms": "yes",
       "allow_email": "yes",
       "custom_field_value": []
@@ -171,7 +171,7 @@
       "location_name": "Studio Demo Tel Aviv",
       "created_at": "2026-10-02 10:00:00",
       "updated_at": "2026-10-10 10:00:00",
-      "task_status": null,
+      "task_status": "taskPast",
       "allow_sms": "yes",
       "allow_email": "yes",
       "custom_field_value": []

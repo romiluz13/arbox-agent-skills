@@ -81,6 +81,8 @@ Read [references/safety.md](references/safety.md) before any change. Each operat
 ## 5. Reading data well
 
 - **Lists go to files:** `~/.arbox/bin/arbox read /v3/users --all --out ~/Arbox/work/users.json`. Then look at the count and the fields you need. Don't paste member lists into the chat. `--out` only writes under `~/Arbox/`.
+- **One call at a time:** Arbox answered HTTP 429 "concurrent requests not allowed" when two calls with one key overlapped (seen once on a live account; not documented). Run reads one after another, never in parallel; the helper waits and retries a read twice on its own.
+- **Filters** go after the path as `name=value` (`read /v3/reports/salesReport fromDate=2026-10-01 toDate=2026-10-15`). For reads the helper also takes the query form, `/v3/reports/salesReport?fromDate=...&toDate=...`, as long as the values have no `%`, `+` or `#`.
 - **Pagination:** `--all` fetches every page (500 per page, up to 20 pages). If it prints INCOMPLETE, say totals are "at least". Without jq the pages aren't merged: read `<file>.manifest.txt` and the `<file>.page-N.json` files it lists (`doctor` shows whether jq is installed). The API gives no total count, so never state a total from one page.
 - **Dates:** many finance reads cap the range at 31 days; loop month by month. See [references/quirks.md](references/quirks.md).
 - **Ids:** numbers in requests, often strings in responses; `user_id` can differ in type between operations. Ignore `enum: [0]` on id fields, which is a spec artifact.

@@ -11,6 +11,8 @@ Request bodies are stored next to the log as <LOG_FILE>.body.<N>.
 Routes live under /api/public (the real base path). Special keys:
     bad-*        -> 401 Unauthenticated
     forbidden-*  -> 403
+    busy-*       -> 429 on every request
+GET /v3/busy?fail=N&run=R answers 429 to the first N requests with the same query, then 200.
 """
 import json
 import os
@@ -25,6 +27,7 @@ DEMO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "skill
 PORT_FILE, LOG_FILE = sys.argv[1], sys.argv[2]
 LOCK = threading.Lock()
 COUNTER = [0]
+BUSY_HITS = {}
 TOTAL_USERS = 1200
 
 
@@ -78,6 +81,15 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(401, {"message": "Unauthenticated."})
         if key.startswith("forbidden-"):
             return self.reply(403, {"message": "This action is unauthorized."})
+        if key.startswith("busy-"):
+            return self.reply(429, {"message": "concurrent requests not allowed"})
+        if route == "/v3/busy":
+            with LOCK:
+                BUSY_HITS[parts.query] = BUSY_HITS.get(parts.query, 0) + 1
+                hits = BUSY_HITS[parts.query]
+            if hits <= int((query.get("fail") or ["0"])[0]):
+                return self.reply(429, {"message": "concurrent requests not allowed"})
+            return self.reply(200, envelope([{"hits": hits}]))
         if route == "/v3/slow":
             time.sleep(3)
             return self.reply(200, envelope([]))
